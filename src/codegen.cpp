@@ -87,7 +87,6 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 		args.push_back((**it).codeGen(context));
 	}
 	/* Effectively call the method*/
-	// CallInst *call = CallInst::Create(function, args.begin(), args.end(), "", context.currentBlock());
 	CallInst *call = CallInst::Create(function, makeArrayRef(args), "", context.currentBlock());
 
 	cout << "Creating method call: " << id.name << endl;
@@ -147,8 +146,7 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
-	// AllocaInst *alloc = new AllocaInst(typeOf(type), 0, context.currentBlock());
-	// AllocaInst *alloc = new AllocaInst(typeOf(type));
+	
 	AllocaInst *alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), context.currentBlock());
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {
