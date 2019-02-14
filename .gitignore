@@ -4,4 +4,6 @@ parser.cpp
 parser.hpp
 scanner.cpp
 parser.output
+build
+
 .vscode/
