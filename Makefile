@@ -37,7 +37,8 @@ OBJ = $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 DISTCLEAN_LIST := $(OBJ) \
 				  $(PARSER_HEADER)\
 				  $(PARSER)\
-				  $(SCANNER)
+				  $(SCANNER)\
+				  *.o
 CLEAN_LIST := $(TARGET) \
 			  $(DISTCLEAN_LIST) \
 			  $(TARGET_NAME)
@@ -56,7 +57,7 @@ all: $(TARGET)
 
 # non-phony targets
 $(TARGET): $(OBJ)
-	$(CC) $(CCFLAG) $(INCLUDES) -o $@ $?
+	$(CC) $(CCFLAG) $(INCLUDES) -o $@ $^
 
 $(OBJ): $(SCANNER)
 
