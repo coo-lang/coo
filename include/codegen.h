@@ -53,7 +53,7 @@ class CodeGenContext {
 	
 public:
 	Module *module;
-	CodeGenContext() { module = new Module("main", TheContext); }
+	CodeGenContext(std::string sourceFileName) { module = new Module(sourceFileName, TheContext); }
 
 	// void register_printf(llvm::Module *module) {
 	// 	std::vector<llvm::Type*> printf_arg_types; // 这里是参数表

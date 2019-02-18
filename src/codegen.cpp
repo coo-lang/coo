@@ -22,9 +22,9 @@ void CodeGenContext::generateCode(NBlock& root) {
 
 	cout << "Code is generated.\n";
 	/*Print the bytecode*/
-	legacy::PassManager pm;
-	pm.add(createPrintModulePass(outs()));
-	pm.run(*module);
+	// legacy::PassManager pm;
+	// pm.add(createPrintModulePass(outs()));
+	// pm.run(*module);
 }
 
 /* Executes program main function*/

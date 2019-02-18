@@ -14,7 +14,7 @@ void unrecognized_char(char c);
 %%
 
 [ \t\v\f\r]				;
-[\n]                    {cur_line++; };
+[\n]                    {cur_line++; }
 [a-zA-Z_][a-zA-Z0-9_]*	SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+\.[0-9]*			SAVE_TOKEN; return TDOUBLE;
 [0-9]+					SAVE_TOKEN; return TINTEGER;
