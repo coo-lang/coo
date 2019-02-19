@@ -1,0 +1,9 @@
+/* this is a comment */
+
+/*
+ * /* this is a nested comment */
+ *
+ * this is a multiple-lines comment.
+ *
+ */
+1+2

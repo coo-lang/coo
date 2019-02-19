@@ -7,3 +7,6 @@ parser.output
 build
 
 .vscode/
+
+# test
+output/

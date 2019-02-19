@@ -49,11 +49,11 @@ public:
 
 class CodeGenContext {
 	std::stack<CodeGenBlock *> blocks;
-	Function *mainFunction;	
-	
+	Function *mainFunction;
+
 public:
 	Module *module;
-	CodeGenContext() { module = new Module("main", TheContext); }
+	CodeGenContext(std::string sourceFileName) { module = new Module(sourceFileName, TheContext); }
 
 	// void register_printf(llvm::Module *module) {
 	// 	std::vector<llvm::Type*> printf_arg_types; // 这里是参数表
@@ -62,8 +62,8 @@ public:
 
 	// 	llvm::FunctionType* printf_type =
 	// 		llvm::FunctionType::get(
-	// 			llvm::Type::getVoidTy(module->getContext()), printf_arg_types, false); 
-	// 			// llvm::Type::getInt32Ty(module->getContext()), printf_arg_types, true); 
+	// 			llvm::Type::getVoidTy(module->getContext()), printf_arg_types, false);
+	// 			// llvm::Type::getInt32Ty(module->getContext()), printf_arg_types, true);
 	// 			// 这里的true表示后面接不定参数
 
 	// 	llvm::Function *func = llvm::Function::Create(

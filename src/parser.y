@@ -7,7 +7,7 @@
 NBlock *programBlock;
 
 extern int yylex();
-void yyerror(const char *s) { printf("ERROR: %s\n", s); }
+void yyerror(const char *s);
 
 %}
 

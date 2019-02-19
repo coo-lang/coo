@@ -33,6 +33,9 @@ PARSER_SRC := $(SRC_PATH)/parser.y
 SRC = $(foreach x, $(SRC_PATH), $(wildcard $(addprefix $(x)/*,.c*)))
 OBJ = $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 
+# test file
+TEST_OUTPUT := test/output/*
+
 # clean files list
 DISTCLEAN_LIST := $(OBJ) \
 				  $(PARSER_HEADER)\
@@ -41,7 +44,8 @@ DISTCLEAN_LIST := $(OBJ) \
 				  *.o
 CLEAN_LIST := $(TARGET) \
 			  $(DISTCLEAN_LIST) \
-			  $(TARGET_NAME)
+			  $(TARGET_NAME) \
+			  $(TEST_OUTPUT)
 
 # default rule
 default: dirs
@@ -83,6 +87,12 @@ dirs:
 	@mkdir -p $(OBJ_PATH)
 	@mkdir -p $(BIN_PATH)
 
+# test #
+
+.PHONY: test
+test: default
+	bash testall.sh
+
 .PHONY: clean
 clean:
 	@echo CLEAN $(CLEAN_LIST)
@@ -92,3 +102,8 @@ clean:
 distclean:
 	@echo CLEAN $(CLEAN_LIST)
 	@rm -f $(DISTCLEAN_LIST)
+
+.PHONY: testclean
+testclean:
+	@echo CLEAN $(TEST_OUTPUT)
+	@rm -f $(TEST_OUTPUT)

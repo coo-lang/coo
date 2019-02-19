@@ -22,9 +22,9 @@ void CodeGenContext::generateCode(NBlock& root) {
 
 	cout << "Code is generated.\n";
 	/*Print the bytecode*/
-	legacy::PassManager pm;
-	pm.add(createPrintModulePass(outs()));
-	pm.run(*module);
+	// legacy::PassManager pm;
+	// pm.add(createPrintModulePass(outs()));
+	// pm.run(*module);
 }
 
 /* Executes program main function*/
@@ -39,7 +39,7 @@ GenericValue CodeGenContext::runCode() {
 	GenericValue v = ee->runFunction(mainFunction, noargs);
   	// ee->freeMachineCodeForFunction(mainFunction);
   	delete ee;
-  	llvm_shutdown();	
+  	llvm_shutdown();
 	cout << "Code was run.\n";
 	return v;
 }
@@ -91,7 +91,7 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 
 	cout << "Creating method call: " << id.name << endl;
 	return call;
-	
+
 }
 
 Value* NBinaryOperator::codeGen(CodeGenContext& context) {
@@ -108,7 +108,7 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 			instr = Instruction::Mul;
 			goto math;
 		case TDIV:
-			instr = Instruction::SDiv; 
+			instr = Instruction::SDiv;
 			goto math;
 		/* TODO comparison*/
 	}
@@ -135,7 +135,7 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-	return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name], 
+	return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name],
 		false, context.currentBlock());
 }
 
@@ -146,7 +146,7 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
-	
+
 	AllocaInst *alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), context.currentBlock());
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {
