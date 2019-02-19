@@ -28,7 +28,7 @@ void yyerror(const char *s);
 
 /* Terminal symbols. They need to match tokens in tokens.l file */
 
-%token <string> TIDENTIFIER TINTEGER TDOUBLE
+%token <string> TIDENTIFIER TINTEGER TDOUBLE TLONG
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
 %token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT
 %token <token> TPLUS TMINUS TMUL TDIV
@@ -85,8 +85,9 @@ func_decl_args : /* Blank! */ {$$ = new VariableList(); }
 ident : TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
 	  ;
 
-numeric : TINTEGER { $$ = new NInteger(atol($1->c_str())); delete $1; }
+numeric : TINTEGER { $$ = new NInteger(atoi($1->c_str())); delete $1; }
 		| TDOUBLE { $$ = new NDouble(atof($1->c_str())); delete $1; }
+		| TLONG {$$ = new NLong(atol($1->c_str())); delete $1; }
 
 expr : ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	 | ident TLPAREN call_args TRPAREN { $$ = new NMethodCall(*$1, *$3); delete $3; }

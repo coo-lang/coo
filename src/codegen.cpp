@@ -47,8 +47,10 @@ GenericValue CodeGenContext::runCode() {
 /* Returns a LLVM type based on the identifier */
 static Type *typeOf(const NIdentifier type) {
 	if (type.name.compare("int") == 0) {
+		return Type::getInt32Ty(TheContext);
+	} else if (type.name.compare("long") == 0) {
 		return Type::getInt64Ty(TheContext);
-	} else if (type.name.compare("double") == 0) {
+	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
 	}
 	return Type::getVoidTy(TheContext);
@@ -56,6 +58,11 @@ static Type *typeOf(const NIdentifier type) {
 
 /* Code Generation */
 Value* NInteger::codeGen(CodeGenContext& context) {
+	cout << "Creating Integer: " << value << endl;
+	return ConstantInt::get(Type::getInt32Ty(TheContext), value, true);
+}
+
+Value* NLong::codeGen(CodeGenContext& context) {
 	cout << "Creating Integer: " << value << endl;
 	return ConstantInt::get(Type::getInt64Ty(TheContext), value, true);
 }

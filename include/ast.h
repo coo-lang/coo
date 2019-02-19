@@ -25,8 +25,15 @@ class NStatement : public Node {
 
 class NInteger : public NExpression {
 public:
+	int value;
+	NInteger(int value) : value(value) { }
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+class NLong : public NExpression {
+public:
 	long long value;
-	NInteger(long long value) : value(value) { }
+	NLong(long long value) : value(value) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
