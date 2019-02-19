@@ -57,7 +57,7 @@ void yyerror(const char *s);
 program : stmts { programBlock = $1; }
 		;
 
-stmts : stmt { $$ = new NBlock(); $$->statements.push_back ($<stmt>1); }
+stmts : { $$ = new NBlock();  }
 	  | stmts stmt { $1->statements.push_back($<stmt>2); }
 	  ;
 
