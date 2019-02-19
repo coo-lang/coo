@@ -9,7 +9,7 @@ extern NBlock* programBlock;
 extern int yyparse();
 
 int main(int argc, char **argv)
-{	
+{
 	/**
 	 * parse command line args
 	*/
@@ -24,8 +24,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	std::cout << inFile << " " << outFile << std::endl;
-	
-	// read source code 
+
+	// read source code
 	freopen(inFile.c_str(), "r", stdin);
 
 	// compiler front-end parse
