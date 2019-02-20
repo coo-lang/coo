@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 #include <llvm/IR/Value.h>
 
 class CodeGenContext;
@@ -48,6 +49,13 @@ class NBoolean : public NExpression {
 public:
 	bool value;
 	NBoolean(bool value) : value(value) { }
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+class NString : public NExpression {
+public:
+	std::string value;
+	NString(std::string value) : value(value) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 

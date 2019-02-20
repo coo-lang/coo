@@ -45,15 +45,15 @@ STRING_END ("\"")
 
 [a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+(\.[0-9]*[fF]?|[fF])	SAVE_TOKEN; return TDOUBLELIT;
-[0-9]+					    SAVE_TOKEN; return TINTEGERLIT;
+[0-9]+					            SAVE_TOKEN; return TINTEGERLIT;
 [0-9]+[lL]                  SAVE_TOKEN; return TLONGLIT;
 
 {STRING_BEGIN}              BEGIN(SINGLE_STRING); printf("str start: %d\n", yy_start);
 <SINGLE_STRING>{
   \n                        yyerror("the string misses \" to termiate before newline");
   <<EOF>>                   yyerror("the string misses \" to terminate before EOF");
-  ([^\\\"]|\\.)*            printf("now: %s: %d\n", yytext, yyleng); debug("string end");      ;
-  {STRING_END}              BEGIN(INITIAL);
+  ([^\\\"]|\\.)*            SAVE_TOKEN;
+  {STRING_END}              BEGIN(INITIAL); return TSTRINGLIT;
   .                         unrecognized_char(yytext[0]);
 }
 

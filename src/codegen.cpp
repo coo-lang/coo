@@ -52,6 +52,8 @@ static Type *typeOf(const NIdentifier type) {
 		return Type::getInt64Ty(TheContext);
 	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
+	} else if (type.name.compare("string") == 0) {
+		return Type::getVoidTy(TheContext);
 	}
 	return Type::getVoidTy(TheContext);
 }
@@ -76,6 +78,19 @@ Value* NBoolean::codeGen(CodeGenContext& context) {
 	cout << "Create Boolean: " << value << endl;
 	return ConstantInt::get(Type::getInt1Ty(TheContext), value, false);
 }
+
+/* todo: unimplement NString::codeGen() */
+Value* NString::codeGen(CodeGenContext& context) {
+	cout << "Create String: " << value << endl;
+
+	auto charValue = value.c_str();
+	ArrayType *t = ArrayType::get(Type::getInt8Ty(TheContext), sizeof(charValue));
+	// Constant*
+	Constant *vcc = ConstantInt::get(Type::getInt8Ty(TheContext), *charValue, false);
+	// Constant **vc = &vcc;
+	return ConstantArray::get(t, makeArrayRef(vcc));
+}
+/* NOT IMPLEMENT */
 
 Value* NIdentifier::codeGen(CodeGenContext& context) {
 	cout << "Creating identifier reference: " << name << endl;
