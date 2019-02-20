@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 		std::cout << "Usage: ./coo [source_code_file_name] [target_file_name]\n";
 		return 1;
 	}
-	std::cout << inFile << " " << outFile << std::endl;
+	std::cout << "source code file: " << inFile << "\t" << "target code file: " << outFile << std::endl;
 
 	// read source code
 	freopen(inFile.c_str(), "r", stdin);

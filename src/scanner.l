@@ -13,13 +13,17 @@ void yyerror(const char *msg);
 void unrecognized_char(char c);
 void debug(char* msg);
 %}
-
 WHITESPACE   ([ \t\v\f\r]+)
+
 SINGLE_COMMENT  ("//".*)
 MULTIPLE_COMMENT_BEGIN ("/*")
 MULTIPLE_COMMENT_END ("*/")
 
+STRING_BEGIN ("\"")
+STRING_END ("\"")
+
 %x MULTIPLE_COMMENT
+%x SINGLE_STRING
 
 %%
 
@@ -29,16 +33,30 @@ MULTIPLE_COMMENT_END ("*/")
 {SINGLE_COMMENT}                    ;
 {MULTIPLE_COMMENT_BEGIN}            BEGIN(MULTIPLE_COMMENT);
 <MULTIPLE_COMMENT>{
-  {MULTIPLE_COMMENT_BEGIN}          { ++comment_nesting; }
+  \n                                cur_line++;
+  {MULTIPLE_COMMENT_BEGIN}          comment_nesting++;
   {MULTIPLE_COMMENT_END}            { if (comment_nesting) --comment_nesting;
-                                      else BEGIN(INITIAL);}
+                                      else BEGIN(INITIAL); }
+  <<EOF>>                           yyerror("the comment misses */ to termiate before EOF");
   .                                 ;
-  \n                                { cur_line++; };
 }
 
-[a-zA-Z_][a-zA-Z0-9_]*	SAVE_TOKEN; return TIDENTIFIER;
-[0-9]+\.[0-9]*			SAVE_TOKEN; return TDOUBLE;
-[0-9]+					SAVE_TOKEN; return TINTEGER;
+"true"|"false"              SAVE_TOKEN; return TBOOLLIT;
+
+[a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
+[0-9]+(\.[0-9]*[fF]?|[fF])	SAVE_TOKEN; return TDOUBLELIT;
+[0-9]+					            SAVE_TOKEN; return TINTEGERLIT;
+[0-9]+[lL]                  SAVE_TOKEN; return TLONGLIT;
+
+{STRING_BEGIN}              BEGIN(SINGLE_STRING); printf("str start: %d\n", yy_start);
+<SINGLE_STRING>{
+  \n                        yyerror("the string misses \" to termiate before newline");
+  <<EOF>>                   yyerror("the string misses \" to terminate before EOF");
+  ([^\\\"]|\\.)*            SAVE_TOKEN;
+  {STRING_END}              BEGIN(INITIAL); return TSTRINGLIT;
+  .                         unrecognized_char(yytext[0]);
+}
+
 "="						return TOKEN(TEQUAL);
 "=="					return TOKEN(TCEQ);
 "!="					return TOKEN(TCNE);
@@ -57,14 +75,14 @@ MULTIPLE_COMMENT_END ("*/")
 "*"						return TOKEN(TMUL);
 "/"						return TOKEN(TDIV);
 
-<<EOF>>                 return 0;
+<<EOF>>       return 0;
 
-.						unrecognized_char(yytext[0]);
+.						  unrecognized_char(yytext[0]);
 
 %%
 
 void debug(char* msg) {
-    printf("%d: %s\n", cur_line, msg);
+    printf("%s(%d): %d: %s\n", yytext, yyleng, cur_line, msg);
 }
 
 void unrecognized_char(char c) {

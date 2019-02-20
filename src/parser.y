@@ -28,14 +28,14 @@ void yyerror(const char *s);
 
 /* Terminal symbols. They need to match tokens in tokens.l file */
 
-%token <string> TIDENTIFIER TINTEGER TDOUBLE
+%token <string> TIDENTIFIER TINTEGERLIT TDOUBLELIT TLONGLIT TBOOLLIT TSTRINGLIT
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
 %token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT
 %token <token> TPLUS TMINUS TMUL TDIV
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
-%type <expr> numeric expr
+%type <expr> numeric boolean string expr
 %type <varvec> func_decl_args
 %type <exprvec> call_args
 %type <block> program stmts block
@@ -57,7 +57,7 @@ void yyerror(const char *s);
 program : stmts { programBlock = $1; }
 		;
 
-stmts : stmt { $$ = new NBlock(); $$->statements.push_back ($<stmt>1); }
+stmts : { $$ = new NBlock();  }
 	  | stmts stmt { $1->statements.push_back($<stmt>2); }
 	  ;
 
@@ -85,19 +85,29 @@ func_decl_args : /* Blank! */ {$$ = new VariableList(); }
 ident : TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
 	  ;
 
-numeric : TINTEGER { $$ = new NInteger(atol($1->c_str())); delete $1; }
-		| TDOUBLE { $$ = new NDouble(atof($1->c_str())); delete $1; }
+numeric : TINTEGERLIT { $$ = new NInteger(atoi($1->c_str())); delete $1; }
+		| TLONGLIT {$$ = new NLong(atol($1->c_str())); delete $1; }
+		| TDOUBLELIT { $$ = new NDouble(atof($1->c_str())); delete $1; }
+		;
+
+boolean : TBOOLLIT {$$ = new NBoolean($1->c_str()[0] == 't'); delete $1; }
+		;
+
+string : TSTRINGLIT {$$ = new NString(*$1); delete $1; }
+	   ;
 
 expr : ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	 | ident TLPAREN call_args TRPAREN { $$ = new NMethodCall(*$1, *$3); delete $3; }
-	 | ident { $<ident>$ = $1; }
-	 | numeric
 	 | expr TPLUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	 | expr TMINUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	 | expr TMUL expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	 | expr TDIV expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	 | expr comparison expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	 | TLPAREN expr TRPAREN { $$ = $2; }
+	 | ident { $<ident>$ = $1; }
+	 | numeric
+	 | boolean
+	 | string
 	 ;
 
 call_args : /* Blank! */ { $$ = new ExpressionList(); }

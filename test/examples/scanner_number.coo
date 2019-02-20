@@ -1,0 +1,6 @@
+int a = 0
+long b = 1l
+long c = 2L
+float d = 3f
+float e = 4F
+float f = 5.6

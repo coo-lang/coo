@@ -15,6 +15,7 @@ void CodeGenContext::generateCode(NBlock& root) {
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", mainFunction, 0);
 
 	/* Push a new variable/block context */
+	Builder.SetInsertPoint(bblock);
 	pushBlock(bblock);
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
 	ReturnInst::Create(TheContext, bblock);
@@ -47,9 +48,13 @@ GenericValue CodeGenContext::runCode() {
 /* Returns a LLVM type based on the identifier */
 static Type *typeOf(const NIdentifier type) {
 	if (type.name.compare("int") == 0) {
+		return Type::getInt32Ty(TheContext);
+	} else if (type.name.compare("long") == 0) {
 		return Type::getInt64Ty(TheContext);
-	} else if (type.name.compare("double") == 0) {
+	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
+	} else if (type.name.compare("string") == 0) {
+		return Type::getVoidTy(TheContext);
 	}
 	return Type::getVoidTy(TheContext);
 }
@@ -57,12 +62,27 @@ static Type *typeOf(const NIdentifier type) {
 /* Code Generation */
 Value* NInteger::codeGen(CodeGenContext& context) {
 	cout << "Creating Integer: " << value << endl;
+	return ConstantInt::get(Type::getInt32Ty(TheContext), value, true);
+}
+
+Value* NLong::codeGen(CodeGenContext& context) {
+	cout << "Creating Integer: " << value << endl;
 	return ConstantInt::get(Type::getInt64Ty(TheContext), value, true);
 }
 
 Value* NDouble::codeGen(CodeGenContext& context) {
 	cout << "Creating Double: " << value << endl;
 	return ConstantFP::get(Type::getDoubleTy(TheContext), value);
+}
+
+Value* NBoolean::codeGen(CodeGenContext& context) {
+	cout << "Create Boolean: " << value << endl;
+	return ConstantInt::get(Type::getInt1Ty(TheContext), value, false);
+}
+
+Value* NString::codeGen(CodeGenContext& context) {
+	cout << "Create String: " << value << endl;
+	return Builder.CreateGlobalStringPtr(StringRef(value.c_str()));
 }
 
 Value* NIdentifier::codeGen(CodeGenContext& context) {
@@ -135,8 +155,10 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-	return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name],
-		false, context.currentBlock());
+
+	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+	// return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name],
+	// 	false, context.currentBlock());
 }
 
 Value* NExpressionStatement::codeGen(CodeGenContext& context) {
@@ -147,6 +169,7 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
+	// AllocaInst *alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
 	AllocaInst *alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), context.currentBlock());
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {
