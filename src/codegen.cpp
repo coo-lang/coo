@@ -15,6 +15,7 @@ void CodeGenContext::generateCode(NBlock& root) {
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", mainFunction, 0);
 
 	/* Push a new variable/block context */
+	Builder.SetInsertPoint(bblock);
 	pushBlock(bblock);
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
 	ReturnInst::Create(TheContext, bblock);
@@ -79,18 +80,10 @@ Value* NBoolean::codeGen(CodeGenContext& context) {
 	return ConstantInt::get(Type::getInt1Ty(TheContext), value, false);
 }
 
-/* todo: unimplement NString::codeGen() */
 Value* NString::codeGen(CodeGenContext& context) {
 	cout << "Create String: " << value << endl;
-
-	auto charValue = value.c_str();
-	ArrayType *t = ArrayType::get(Type::getInt8Ty(TheContext), sizeof(charValue));
-	// Constant*
-	Constant *vcc = ConstantInt::get(Type::getInt8Ty(TheContext), *charValue, false);
-	// Constant **vc = &vcc;
-	return ConstantArray::get(t, makeArrayRef(vcc));
+	return Builder.CreateGlobalStringPtr(StringRef(value.c_str()));
 }
-/* NOT IMPLEMENT */
 
 Value* NIdentifier::codeGen(CodeGenContext& context) {
 	cout << "Creating identifier reference: " << name << endl;
@@ -162,8 +155,10 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-	return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name],
-		false, context.currentBlock());
+
+	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+	// return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name],
+	// 	false, context.currentBlock());
 }
 
 Value* NExpressionStatement::codeGen(CodeGenContext& context) {
@@ -174,6 +169,7 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
+	// AllocaInst *alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
 	AllocaInst *alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), context.currentBlock());
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {

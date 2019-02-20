@@ -4,8 +4,9 @@ OUTPUT_PATH=test/output
 sum=0
 success=0
 
+echo ""
 echo "start testing..."
-echo "======================================\n"
+echo "======================================"
 
 for f in `find ${EXAMPLES_PATH}/*.coo -type f`
 do
@@ -18,7 +19,7 @@ do
     else
         echo "Fail"
     fi
-    echo "======================================\n"
+    echo "======================================"
 done
 
 echo "total test cases: ${sum}, successed ${success}, failed `expr ${sum} - ${success}`"
