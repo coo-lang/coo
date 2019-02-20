@@ -36,10 +36,13 @@ MULTIPLE_COMMENT_END ("*/")
   \n                                { cur_line++; };
 }
 
-[a-zA-Z_][a-zA-Z0-9_]*	SAVE_TOKEN; return TIDENTIFIER;
+"true"|"false"              SAVE_TOKEN; return TBOOLLIT;
+
+[a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+(\.[0-9]*[fF]?|[fF])	SAVE_TOKEN; return TDOUBLE;
-[0-9]+					SAVE_TOKEN; return TINTEGER;
-[0-9]+[lL]              SAVE_TOKEN; return TLONG;
+[0-9]+					    SAVE_TOKEN; return TINTEGER;
+[0-9]+[lL]                  SAVE_TOKEN; return TLONG;
+
 "="						return TOKEN(TEQUAL);
 "=="					return TOKEN(TCEQ);
 "!="					return TOKEN(TCNE);

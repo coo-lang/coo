@@ -72,6 +72,11 @@ Value* NDouble::codeGen(CodeGenContext& context) {
 	return ConstantFP::get(Type::getDoubleTy(TheContext), value);
 }
 
+Value* NBoolean::codeGen(CodeGenContext& context) {
+	cout << "Create Boolean: " << value << endl;
+	return ConstantInt::get(Type::getInt1Ty(TheContext), value, false);
+}
+
 Value* NIdentifier::codeGen(CodeGenContext& context) {
 	cout << "Creating identifier reference: " << name << endl;
 	if (context.locals().find(name) == context.locals().end()) {
