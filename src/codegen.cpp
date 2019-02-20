@@ -53,12 +53,24 @@ static Type *typeOf(const NIdentifier type) {
 	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
 	} else if (type.name.compare("string") == 0) {
-		return Type::getVoidTy(TheContext);
+		return Type::getVoidTy(TheContext);	/* todo: need modify next time */
+	} else if (type.name.compare("char") == 0) {
+		return Type::getInt16Ty(TheContext);
 	}
 	return Type::getVoidTy(TheContext);
 }
 
 /* Code Generation */
+Constant* NCharacter::codeGenForString(CodeGenContext& context) {
+	cout << "Creating Character For String: " << value << endl;
+	return ConstantInt::get(Type::getInt16Ty(TheContext), value, true);
+}
+
+Value* NCharacter::codeGen(CodeGenContext& context) {
+	cout << "Creating Character: " << value << endl;
+	return ConstantInt::get(Type::getInt16Ty(TheContext), value, true);
+}
+
 Value* NInteger::codeGen(CodeGenContext& context) {
 	cout << "Creating Integer: " << value << endl;
 	return ConstantInt::get(Type::getInt32Ty(TheContext), value, true);
@@ -83,12 +95,14 @@ Value* NBoolean::codeGen(CodeGenContext& context) {
 Value* NString::codeGen(CodeGenContext& context) {
 	cout << "Create String: " << value << endl;
 
-	auto charValue = value.c_str();
-	ArrayType *t = ArrayType::get(Type::getInt8Ty(TheContext), sizeof(charValue));
-	// Constant*
-	Constant *vcc = ConstantInt::get(Type::getInt8Ty(TheContext), *charValue, false);
-	// Constant **vc = &vcc;
-	return ConstantArray::get(t, makeArrayRef(vcc));
+	// todo: if empty
+
+	auto tt = Type::getInt16Ty(TheContext);
+	std::vector<Constant*> after;
+	for (auto c : characters) {
+		after.push_back(c->codeGenForString(context));
+	}
+	return ConstantArray::get(ArrayType::get(tt, characters.size()), makeArrayRef(after));
 }
 /* NOT IMPLEMENT */
 

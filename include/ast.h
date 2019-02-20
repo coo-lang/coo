@@ -7,7 +7,9 @@ class CodeGenContext;
 class NStatement;
 class NExpression;
 class NVariableDeclaration;
+class NCharacter;
 
+typedef std::vector<NCharacter*> CharacterList;
 typedef std::vector<NStatement*> StatementList;
 typedef std::vector<NExpression*> ExpressionList;
 typedef std::vector<NVariableDeclaration*> VariableList;
@@ -22,6 +24,14 @@ class NExpression : public Node {
 };
 
 class NStatement : public Node {
+};
+
+class NCharacter : public NExpression {
+public:
+	int value;
+	NCharacter(int value) : value(value) { }
+	virtual llvm::Constant* codeGenForString(CodeGenContext& context);
+	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
 class NInteger : public NExpression {
@@ -55,7 +65,12 @@ public:
 class NString : public NExpression {
 public:
 	std::string value;
-	NString(std::string value) : value(value) { }
+	CharacterList characters;
+	NString(std::string value) : value(value) {
+		for (auto c : value) {
+			characters.push_back(new NCharacter(c));
+		}
+	}
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
