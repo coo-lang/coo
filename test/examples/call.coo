@@ -1,0 +1,2 @@
+def f(int a){int x = a * 5 + 3 }
+f(1)

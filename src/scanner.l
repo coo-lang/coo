@@ -48,7 +48,7 @@ STRING_END ("\"")
 [0-9]+					            SAVE_TOKEN; return TINTEGERLIT;
 [0-9]+[lL]                  SAVE_TOKEN; return TLONGLIT;
 
-{STRING_BEGIN}              BEGIN(SINGLE_STRING); printf("str start: %d\n", yy_start);
+{STRING_BEGIN}              BEGIN(SINGLE_STRING);
 <SINGLE_STRING>{
   \n                        yyerror("the string misses \" to termiate before newline");
   <<EOF>>                   yyerror("the string misses \" to terminate before EOF");
