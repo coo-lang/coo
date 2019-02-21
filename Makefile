@@ -54,10 +54,13 @@ default: dirs
 
 parser: $(SCANNER)
 
-all: $(TARGET)
+all: $(TARGET) builtin.o
 	@echo "Making symlink: $(TARGET_NAME) -> $<"
 	@$(RM) $(TARGET_NAME)
 	@ln -s `readlink -f $(TARGET)` $(TARGET_NAME)
+
+builtin.o :
+	cc -o builtin.o -c builtin.c
 
 # non-phony targets
 $(TARGET): $(OBJ)

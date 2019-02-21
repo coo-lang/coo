@@ -162,7 +162,6 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-	cout << "ok" << endl;
 	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
 }
 

@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	context.module->print(outs(), nullptr);
 
 	// context.runCode();
-	// ObjGen(context);
+	ObjGen(context);
 
 	return 0;
 }
