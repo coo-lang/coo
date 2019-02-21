@@ -40,7 +40,6 @@ using namespace llvm;
 class NBlock;
 static LLVMContext TheContext;
 static IRBuilder<> Builder(TheContext);
-// static std::map<std::string, Value *> NamedValues;
 
 class CodeGenBlock {
 public:
@@ -75,7 +74,7 @@ public:
 					llvm::Twine("printf"),
 					module
 			);
-		func->setCallingConv(llvm::CallingConv::C); // 一定注意调用方式的正确性
+		func->setCallingConv(llvm::CallingConv::C);
 	}
 
 	void generateCode(NBlock& root);

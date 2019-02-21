@@ -1,1 +1,1 @@
-int a="ab"
+var a:string = "ab"

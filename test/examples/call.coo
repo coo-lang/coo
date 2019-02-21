@@ -1,0 +1,4 @@
+def f(a: int): int {
+   x = a * 5 + 3
+}
+f(a)

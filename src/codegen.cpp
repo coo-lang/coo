@@ -16,9 +16,9 @@ void CodeGenContext::generateCode(NBlock& root) {
 
 	/* Push a new variable/block context */
 	Builder.SetInsertPoint(bblock);
-	pushBlock(bblock);
+	pushBlock(bblock);	// todo: need remove stack data structure
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
-	ReturnInst::Create(TheContext, bblock);
+	Builder.CreateRetVoid();
 	popBlock();
 
 	cout << "Code is generated.\n";
@@ -91,7 +91,7 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << name << endl;
 		return NULL;
 	}
-	return new LoadInst(context.locals()[name], "", false, context.currentBlock());
+	return Builder.CreateLoad(context.locals()[name], "");
 }
 
 Value* NMethodCall::codeGen(CodeGenContext& context) {
@@ -107,7 +107,7 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 		args.push_back((**it).codeGen(context));
 	}
 	/* Effectively call the method*/
-	CallInst *call = CallInst::Create(function, makeArrayRef(args), "", context.currentBlock());
+	CallInst *call = Builder.CreateCall(function, makeArrayRef(args));
 
 	cout << "Creating method call: " << id.name << endl;
 	return call;
@@ -119,23 +119,30 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 	Instruction::BinaryOps instr;
 	switch (op) {
 		case TPLUS:
+			return Builder.CreateAdd(leftSide.codeGen(context), rightSide.codeGen(context));
 			instr = Instruction::Add;
 			goto math;
 		case TMINUS:
+			return Builder.CreateSub(leftSide.codeGen(context), rightSide.codeGen(context));
 			instr = Instruction::Sub;
 			goto math;
 		case TMUL:
+			return Builder.CreateMul(leftSide.codeGen(context), rightSide.codeGen(context));
 			instr = Instruction::Mul;
 			goto math;
 		case TDIV:
+			return Builder.CreateSDiv(leftSide.codeGen(context), rightSide.codeGen(context));
 			instr = Instruction::SDiv;
 			goto math;
 		/* TODO comparison*/
+		/* TODO default */
 	}
 	return NULL;
 math:
-	return BinaryOperator::Create(instr, leftSide.codeGen(context), rightSide.codeGen(context), "",
-			context.currentBlock());
+	;
+	// TODO
+	// return BinaryOperator::Create(instr, leftSide.codeGen(context), rightSide.codeGen(context), "",
+	// 		context.currentBlock());
 }
 
 Value* NBlock::codeGen(CodeGenContext& context) {
@@ -155,10 +162,8 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-
+	cout << "ok" << endl;
 	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
-	// return new StoreInst(rightSide.codeGen(context), context.locals()[leftSide.name],
-	// 	false, context.currentBlock());
 }
 
 Value* NExpressionStatement::codeGen(CodeGenContext& context) {
@@ -169,8 +174,7 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
-	// AllocaInst *alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
-	AllocaInst *alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), context.currentBlock());
+	AllocaInst *alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {
 		NAssignment assn(id, *assignmentExpr);
@@ -186,8 +190,11 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 		argTypes.push_back(typeOf((**it).type));
 	}
 	FunctionType *ftype = FunctionType::get(typeOf(type), makeArrayRef(argTypes), false);
-	Function *function = Function::Create(ftype, GlobalValue::InternalLinkage, id.name.c_str(), context.module);
-	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function, 0);
+	Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
+	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function);
+
+	auto *originBlock = Builder.GetInsertBlock();
+	Builder.SetInsertPoint(bblock);
 
 	context.pushBlock(bblock);
 
@@ -196,9 +203,12 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	}
 
 	block.codeGen(context);
+	// Builder.CreateRet(bblock);
+
 	ReturnInst::Create(TheContext, bblock);
 
 	context.popBlock();
+	Builder.SetInsertPoint(originBlock);
 	cout << "Creating function: " << id.name << endl;
 	return function;
 }

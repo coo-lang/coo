@@ -41,6 +41,8 @@ STRING_END ("\"")
   .                                 ;
 }
 
+"var"                       return TOKEN(TVAR);
+"def"                       return TOKEN(TDEF);
 "true"|"false"              SAVE_TOKEN; return TBOOLLIT;
 
 [a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
@@ -48,7 +50,7 @@ STRING_END ("\"")
 [0-9]+					            SAVE_TOKEN; return TINTEGERLIT;
 [0-9]+[lL]                  SAVE_TOKEN; return TLONGLIT;
 
-{STRING_BEGIN}              BEGIN(SINGLE_STRING); printf("str start: %d\n", yy_start);
+{STRING_BEGIN}              BEGIN(SINGLE_STRING);
 <SINGLE_STRING>{
   \n                        yyerror("the string misses \" to termiate before newline");
   <<EOF>>                   yyerror("the string misses \" to terminate before EOF");
@@ -64,6 +66,7 @@ STRING_END ("\"")
 "<="					return TOKEN(TCLE);
 ">"						return TOKEN(TCGT);
 ">="					return TOKEN(TCGE);
+":"           return TOKEN(TCOLON);
 "("						return TOKEN(TLPAREN);
 ")"						return TOKEN(TRPAREN);
 "{"						return TOKEN(TLBRACE);

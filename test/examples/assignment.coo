@@ -1,1 +1,1 @@
-int a = 1
+var a: int = 1
