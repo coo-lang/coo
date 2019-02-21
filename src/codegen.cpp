@@ -190,8 +190,8 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 		argTypes.push_back(typeOf((**it).type));
 	}
 	FunctionType *ftype = FunctionType::get(typeOf(type), makeArrayRef(argTypes), false);
-	Function *function = Function::Create(ftype, GlobalValue::InternalLinkage, id.name.c_str(), context.module);
-	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function, 0);
+	Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
+	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function);
 
 	auto *originBlock = Builder.GetInsertBlock();
 	Builder.SetInsertPoint(bblock);
@@ -203,11 +203,11 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	}
 
 	block.codeGen(context);
-	// Builder.CreateRetVoid();
+	// Builder.CreateRet(bblock);
 
 	ReturnInst::Create(TheContext, bblock);
 
-	// context.popBlock();
+	context.popBlock();
 	Builder.SetInsertPoint(originBlock);
 	cout << "Creating function: " << id.name << endl;
 	return function;
