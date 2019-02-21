@@ -41,6 +41,8 @@ STRING_END ("\"")
   .                                 ;
 }
 
+"var"                       return TOKEN(TVAR);
+"def"                       return TOKEN(TDEF);
 "true"|"false"              SAVE_TOKEN; return TBOOLLIT;
 
 [a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
@@ -64,6 +66,7 @@ STRING_END ("\"")
 "<="					return TOKEN(TCLE);
 ">"						return TOKEN(TCGT);
 ">="					return TOKEN(TCGE);
+":"           return TOKEN(TCOLON);
 "("						return TOKEN(TLPAREN);
 ")"						return TOKEN(TRPAREN);
 "{"						return TOKEN(TLBRACE);

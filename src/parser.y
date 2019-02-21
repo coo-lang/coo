@@ -30,8 +30,9 @@ void yyerror(const char *s);
 
 %token <string> TIDENTIFIER TINTEGERLIT TDOUBLELIT TLONGLIT TBOOLLIT TSTRINGLIT
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
-%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT
+%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON
 %token <token> TPLUS TMINUS TMUL TDIV
+%token <token> TVAR TDEF
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
@@ -39,7 +40,7 @@ void yyerror(const char *s);
 %type <varvec> func_decl_args
 %type <exprvec> call_args
 %type <block> program stmts block
-%type <stmt> stmt var_decl func_decl
+%type <stmt> stmt var_decl func_decl_arg func_decl
 %type <token> comparison
 
 /* Operator precedence */
@@ -69,17 +70,21 @@ block : TLBRACE stmts TRBRACE { $$ = $2; }
 	  | TLBRACE TRBRACE { $$ = new NBlock(); }
 	  ;
 
-var_decl : ident ident { $$ = new NVariableDeclaration(*$1, *$2); }
-		 | ident ident TEQUAL expr { $$ = new NVariableDeclaration(*$1, *$2, $4); }
+var_decl : TVAR ident TCOLON ident { $$ = new NVariableDeclaration(*$4, *$2); }
+		 | TVAR ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$4, *$2, $6); }
 		 ;
 
-func_decl : ident ident TLPAREN func_decl_args TRPAREN block
-			{ $$ = new NFunctionDeclaration(*$1, *$2, *$4, *$6); delete $4; }
+func_decl : TDEF ident TLPAREN func_decl_args TRPAREN TCOLON ident block
+			{ $$ = new NFunctionDeclaration(*$7, *$2, *$4, *$8); delete $4; }
 		  ;
 
+func_decl_arg : ident TCOLON ident { $$ = new NVariableDeclaration(*$3, *$1); }
+				| ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$3, *$1, $5); }
+				;
+
 func_decl_args : /* Blank! */ {$$ = new VariableList(); }
-			   | var_decl { $$ = new VariableList(); $$->push_back($<var_decl>1); }
-			   | func_decl_args TCOMMA var_decl { $1->push_back($<var_decl>3); }
+			   | func_decl_arg { $$ = new VariableList(); $$->push_back($<var_decl>1); }
+			   | func_decl_args TCOMMA func_decl_arg { $1->push_back($<var_decl>3); }
 			   ;
 
 ident : TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }

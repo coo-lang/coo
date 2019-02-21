@@ -1,3 +1,4 @@
-def f(int a){a * 5 + 3 }
-int a = 1
+def f(a: int): int {
+   x = a * 5 + 3
+}
 f(a)
