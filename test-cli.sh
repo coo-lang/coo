@@ -35,13 +35,14 @@ BASH_CLI_OPT_DATA_TYPE[3]="cmd"
 #
 BASH_CLI_MANDATORY_PARAM[1]="0"
 BASH_CLI_MANDATORY_PARAM[2]="0"
+BASH_CLI_NON_MANDATORY_PARAM[3]="0"
 # BASH_CLI_NON_MANDATORY_PARAM[3]="1,2"
 
 # Setting description of the option
 BASH_CLI_OPT_DESC[0]="filename"
 BASH_CLI_OPT_DESC[1]="To create test case with the value of -f"
 BASH_CLI_OPT_DESC[2]="To delete test case with the value of -f"
-BASH_CLI_OPT_DESC[3]="To run test cases in test directory"
+BASH_CLI_OPT_DESC[3]="To run test cases in test directory, add -f will run designated test case"
 
 # Implementation of "create" command
 #
@@ -76,9 +77,29 @@ remove() {
 }
 
 test() {
-    echo "[Start Testing]running all test cases..."
+    local filename=${BASH_CLI_OPT_VALUE[0]}
 
-    bash ./script/testall.sh
+    if [ ${filename} == "<undefined>" ]; then
+        echo "[Start Testing]running all test cases..."
+        bash ./script/testall.sh
+    else
+        echo "[Start Testing One File]running ${filename}"
+        ./coo "test/examples/${filename}.coo" "test/output/${filename}"
+        if [ $? -eq 0 ]; then
+            echo "BUILD FINE"
+            clang -o "test/output/${filename}" "test/output/${filename}.o" "./build/obj/builtin.o"
+            "test/output/${filename}" > "test/output/${filename}.result"
+            if cmp "test/output/${filename}.result" "test/expect/${filename}.expect"; then # cmp return `true` if same
+                echo "[OK]pass ${filename} test case"
+            else
+                failed_arr+=(${f})
+                echo "Run Fail"
+            fi
+        else
+            failed_arr+=(${f})
+            echo "Build Fail"
+        fi
+    fi
 
     exit
 }
