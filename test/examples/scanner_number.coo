@@ -4,3 +4,9 @@ var c:long = 2L
 var d:float = 3f
 var e:float = 4F
 var f:float = 5.6
+print("a is %d", a)
+print("b is %lld", b)
+print("c is %lld", c)
+print("d is %f", d)
+print("e is %f", e)
+print("f is %f", f)

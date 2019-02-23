@@ -1,1 +1,1 @@
-1+2
+print("the result is %d", 1+2)

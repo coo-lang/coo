@@ -64,7 +64,7 @@ public:
 
 		llvm::FunctionType* printf_type =
 			llvm::FunctionType::get(
-				llvm::Type::getVoidTy(module->getContext()), printf_arg_types, false);
+				llvm::Type::getVoidTy(module->getContext()), printf_arg_types, true);
 
 		llvm::Function *func = llvm::Function::Create(
 					printf_type, llvm::Function::ExternalLinkage,
