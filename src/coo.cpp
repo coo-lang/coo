@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 		std::cout << "Usage: ./coo [source_code_file_name] [target_file_name]\n";
 		return 1;
 	}
-	std::cout << "source code file: " << inFile << "\t" << "target code file: " << outFile << std::endl;
 
 	// read source code
 	freopen(inFile.c_str(), "r", stdin);
@@ -36,12 +35,14 @@ int main(int argc, char **argv)
 	context.generateCode(*programBlock);
 
 	// redirect stdout to file
-	std::cout << "write to file: " << outFile << std::endl;
-	freopen(outFile.c_str(),"w",stdout);
+	std::cout << "write to file: " << outFile + ".ll" << std::endl;
+	FILE *fp = freopen((outFile + ".ll").c_str(),"w",stdout);
 	context.module->print(outs(), nullptr);
 
 	// context.runCode();
-	ObjGen(context);
+	ObjGen(context, outFile + ".o");
+	fflush(fp); freopen("/dev/tty", "w", stdout);
+	std::cout << "Object code wrote to " << outFile << ".o" << std::endl;
 
 	return 0;
 }

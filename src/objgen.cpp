@@ -62,7 +62,5 @@ void ObjGen(CodeGenContext & context, const std::string& filename){
     pass.run(*context.module);
     dest.flush();
 
-    outs() << "Object code wrote to " << filename.c_str() << "\n";
-
     return;
 }

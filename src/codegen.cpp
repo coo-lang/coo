@@ -10,7 +10,7 @@ void CodeGenContext::generateCode(NBlock& root) {
 
 	/* Create top level interpreter function to call as entry*/
 	vector<Type*> argTypes;
-	FunctionType *ftype = FunctionType::get(Type::getVoidTy(TheContext), makeArrayRef(argTypes), false);
+	FunctionType *ftype = FunctionType::get(Type::getInt32Ty(TheContext), makeArrayRef(argTypes), false);
 	mainFunction = Function::Create(ftype, GlobalValue::ExternalLinkage, "main", module);
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", mainFunction, 0);
 
@@ -18,7 +18,8 @@ void CodeGenContext::generateCode(NBlock& root) {
 	Builder.SetInsertPoint(bblock);
 	pushBlock(bblock);	// todo: need remove stack data structure
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
-	Builder.CreateRetVoid();
+	// Builder.CreateRetVoid();
+	Builder.CreateRet(ConstantInt::get(Type::getInt32Ty(TheContext), 0, true));
 	popBlock();
 
 	cout << "Code is generated.\n";
