@@ -78,9 +78,9 @@ remove() {
 test() {
     echo "[Start Testing]running all test cases..."
 
-    bash ./tool/testall.sh
+    bash ./script/testall.sh
 
     exit
 }
 
-source ./tool/base.sh
+source ./script/base.sh

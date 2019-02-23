@@ -25,6 +25,7 @@ ifeq ($(OS),Windows_NT)
 	TARGET_NAME := $(addsuffix .exe,$(TARGET_NAME))
 endif
 TARGET := $(BIN_PATH)/$(TARGET_NAME)
+BUILTIN := $(OBJ_PATH)/builtin.o
 MAIN_SRC := coo.cpp
 
 # src files & obj files
@@ -55,12 +56,12 @@ default: dirs
 
 parser: $(SCANNER)
 
-all: $(TARGET) $(OBJ_PATH)/builtin.o
+all: $(TARGET) $(BUILTIN)
 	@echo "Making symlink: $(TARGET_NAME) -> $<"
 	@$(RM) $(TARGET_NAME)
 	@ln -s `readlink -f $(TARGET)` $(TARGET_NAME)
 
-$(OBJ_PATH)/builtin.o : $(BUILTIN_SRC)
+$(BUILTIN) : $(BUILTIN_SRC)
 	cc -o $@ -c $^
 
 # non-phony targets
@@ -95,7 +96,7 @@ dirs:
 
 .PHONY: test
 test: default
-	bash tool/testall.sh
+	bash script/testall.sh
 
 .PHONY: clean
 clean:

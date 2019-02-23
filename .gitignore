@@ -10,4 +10,3 @@ build
 
 # test
 output/
-builtin.o
