@@ -30,7 +30,8 @@ MAIN_SRC := coo.cpp
 # src files & obj files
 SCANNER_SRC := $(SRC_PATH)/scanner.l
 PARSER_SRC := $(SRC_PATH)/parser.y
-SRC = $(foreach x, $(SRC_PATH), $(wildcard $(addprefix $(x)/*,.c*)))
+BUILTIN_SRC := $(SRC_PATH)/builtin.c
+SRC = $(foreach x, $(SRC_PATH), $(wildcard $(addprefix $(x)/*,.cpp)))
 OBJ = $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 
 # test file
@@ -54,13 +55,13 @@ default: dirs
 
 parser: $(SCANNER)
 
-all: $(TARGET) builtin.o
+all: $(TARGET) $(OBJ_PATH)/builtin.o
 	@echo "Making symlink: $(TARGET_NAME) -> $<"
 	@$(RM) $(TARGET_NAME)
 	@ln -s `readlink -f $(TARGET)` $(TARGET_NAME)
 
-builtin.o :
-	cc -o builtin.o -c builtin.c
+$(OBJ_PATH)/builtin.o : $(BUILTIN_SRC)
+	cc -o $@ -c $^
 
 # non-phony targets
 $(TARGET): $(OBJ)
@@ -94,7 +95,7 @@ dirs:
 
 .PHONY: test
 test: default
-	bash testall.sh
+	bash tool/testall.sh
 
 .PHONY: clean
 clean:

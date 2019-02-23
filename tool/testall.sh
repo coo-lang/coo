@@ -19,7 +19,7 @@ do
     ./coo ${f} ${OUTPUT_PATH}/${name}
     if [ $? -eq 0 ]; then
         echo "BUILD FINE"
-        clang -o ${OUTPUT_PATH}/${name} ${OUTPUT_PATH}/${name}.o builtin.o
+        clang -o ${OUTPUT_PATH}/${name} ${OUTPUT_PATH}/${name}.o ./build/obj/builtin.o
         ./${OUTPUT_PATH}/${name} > ./${OUTPUT_PATH}/${name}.result
         if cmp ./${OUTPUT_PATH}/${name}.result ./${EXPECT_PATH}/${name}.expect; then # cmp return `true` if same
             success=`expr $success + 1`
