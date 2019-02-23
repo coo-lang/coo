@@ -59,19 +59,16 @@ public:
 	}
 
 	void register_printf(llvm::Module *module) {
-		std::vector<llvm::Type*> printf_arg_types; // 这里是参数表
-		// printf_arg_types.push_back(llvm::Type::getInt8PtrTy(module->getContext()));
-		printf_arg_types.push_back(llvm::Type::getInt8Ty(module->getContext()));
+		std::vector<llvm::Type*> printf_arg_types;
+		printf_arg_types.push_back(llvm::Type::getInt8PtrTy(module->getContext()));
 
 		llvm::FunctionType* printf_type =
 			llvm::FunctionType::get(
-				// llvm::Type::getVoidTy(module->getContext()), printf_arg_types, false);
-				llvm::Type::getInt32Ty(module->getContext()), printf_arg_types, true);
-				// 这里的true表示后面接不定参数
+				llvm::Type::getVoidTy(module->getContext()), printf_arg_types, true);
 
 		llvm::Function *func = llvm::Function::Create(
 					printf_type, llvm::Function::ExternalLinkage,
-					llvm::Twine("printf"),
+					llvm::Twine("print"),
 					module
 			);
 		func->setCallingConv(llvm::CallingConv::C);

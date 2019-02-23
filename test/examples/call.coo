@@ -1,4 +1,4 @@
-def f(a: int): int {
-   x = a * 5 + 3
+def sum(a: int, b: int): int {
+   a + b
 }
-f(a)
+print("the sum is %d", f(1, 2))

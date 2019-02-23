@@ -25,12 +25,14 @@ ifeq ($(OS),Windows_NT)
 	TARGET_NAME := $(addsuffix .exe,$(TARGET_NAME))
 endif
 TARGET := $(BIN_PATH)/$(TARGET_NAME)
+BUILTIN := $(OBJ_PATH)/builtin.o
 MAIN_SRC := coo.cpp
 
 # src files & obj files
 SCANNER_SRC := $(SRC_PATH)/scanner.l
 PARSER_SRC := $(SRC_PATH)/parser.y
-SRC = $(foreach x, $(SRC_PATH), $(wildcard $(addprefix $(x)/*,.c*)))
+BUILTIN_SRC := $(SRC_PATH)/builtin.c
+SRC = $(foreach x, $(SRC_PATH), $(wildcard $(addprefix $(x)/*,.cpp)))
 OBJ = $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
 
 # test file
@@ -54,10 +56,13 @@ default: dirs
 
 parser: $(SCANNER)
 
-all: $(TARGET)
+all: $(TARGET) $(BUILTIN)
 	@echo "Making symlink: $(TARGET_NAME) -> $<"
 	@$(RM) $(TARGET_NAME)
 	@ln -s `readlink -f $(TARGET)` $(TARGET_NAME)
+
+$(BUILTIN) : $(BUILTIN_SRC)
+	cc -o $@ -c $^
 
 # non-phony targets
 $(TARGET): $(OBJ)
@@ -91,7 +96,7 @@ dirs:
 
 .PHONY: test
 test: default
-	bash testall.sh
+	bash script/testall.sh
 
 .PHONY: clean
 clean:
