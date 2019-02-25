@@ -44,6 +44,8 @@ STRING_END ("\"")
 "var"                       return TOKEN(TVAR);
 "def"                       return TOKEN(TDEF);
 "true"|"false"              SAVE_TOKEN; return TBOOLLIT;
+"if"                        return TOKEN(TIF);
+"else"                      return TOKEN(TELSE);
 
 [a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+(\.[0-9]*[fF]?|[fF])	SAVE_TOKEN; return TDOUBLELIT;
