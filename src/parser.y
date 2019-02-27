@@ -65,6 +65,7 @@ stmts: { $$ = new NBlock();  }
 
 stmt: var_decl | func_decl
 	| expr { $$ = new NExpressionStatement(*$1); }
+	| if_stmt
 	;
 
 block: TLBRACE stmts TRBRACE { $$ = $2; }
@@ -88,8 +89,8 @@ func_decl_args: /* Blank! */ {$$ = new VariableList(); }
 			| func_decl_args TCOMMA func_decl_arg { $1->push_back($<var_decl>3); }
 			;
 
-if_stmt: TIF expr block
-	| TIF expr block TELSE block
+if_stmt: TIF expr block	{printf("parsing if block\n"); }
+	| TIF expr block TELSE block {printf("parsing if else block\n"); }
 	;
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }

@@ -81,6 +81,8 @@ remove() {
 }
 
 test() {
+    make
+
     local filename=${BASH_CLI_OPT_VALUE[0]}
 
     if [ ${filename} == "<undefined>" ]; then
@@ -97,7 +99,7 @@ test() {
                 echo "[OK]pass ${filename} test case"
             else
                 failed_arr+=(${f})
-                echo "Run Fail"
+                echo "Execution Result Incorrect"
             fi
         else
             failed_arr+=(${f})

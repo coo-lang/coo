@@ -1,2 +1,4 @@
 var a: bool = true
-print("the bool value is %d", a)
+var b: bool = false
+a = false
+// print("the bool value is %d", a)
