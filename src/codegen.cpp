@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "codegen.h"
 #include "parser.hpp"
+#include "ts.h"
 
 using namespace std;
 
@@ -114,12 +115,31 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 
 	cout << "Creating method call: " << id.name << endl;
 	return call;
-
 }
 
 Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 	cout << "Creating binary operation " << op << endl;
 	Instruction::BinaryOps instr;
+	Value* left = leftSide.codeGen(context);
+	Value* right = rightSide.codeGen(context);
+
+	cout << getTypeString(left) << endl;
+	cout << getTypeString(right) << endl;
+	// std::string type_str;
+	// llvm::raw_string_ostream rso(type_str);
+	// left->getType()->print(rso);
+	// rso.flush();
+	// cout << type_str << "==" << endl;
+	// printf("left type is ");
+	// (*(*left).getType()).print(outs());
+	// printf("left type is ");
+	// printf("\n");
+	// printf("right type is ");
+	// (*(*right).getType()).print(outs());
+	// printf("\n");
+
+	// if ()
+
 	switch (op) {
 		case TPLUS:
 			return Builder.CreateAdd(leftSide.codeGen(context), rightSide.codeGen(context));
