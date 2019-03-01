@@ -203,8 +203,6 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 		default:
 			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
 			break;
-		/* TODO comparison*/
-		/* TODO default */
 	}
 	return NULL;
 }
@@ -229,6 +227,12 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
 }
 
+Value* NIfStatement::codeGen(CodeGenContext& context) {
+	cout << "Generating if statement" << endl;
+
+	return NULL;
+}
+
 Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating code for " << typeid(expression).name() << endl;
 	return expression.codeGen(context);
@@ -247,6 +251,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 }
 
 Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
+	cout << "Generating function statement" << endl;
 	std::vector<Type*> argTypes;
 	VariableList::const_iterator it;
 	for (it = arguments.begin(); it != arguments.end(); it++) {
