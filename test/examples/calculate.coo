@@ -1,2 +1,3 @@
 var a: int = 1
-var b: int = a + 1
+var b: float = 5.0 / 2.0
+print("b is %f", b)

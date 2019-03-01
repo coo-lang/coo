@@ -1,4 +1,6 @@
 var a: bool = true
 var b: bool = false
-a = false
+var c: int = 2
+var d: int = 3
+var e: bool = c > d
 // print("the bool value is %d", a)

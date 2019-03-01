@@ -123,49 +123,90 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 	Value* left = leftSide.codeGen(context);
 	Value* right = rightSide.codeGen(context);
 
-	cout << getTypeString(left) << endl;
-	cout << getTypeString(right) << endl;
-	// std::string type_str;
-	// llvm::raw_string_ostream rso(type_str);
-	// left->getType()->print(rso);
-	// rso.flush();
-	// cout << type_str << "==" << endl;
-	// printf("left type is ");
-	// (*(*left).getType()).print(outs());
-	// printf("left type is ");
-	// printf("\n");
-	// printf("right type is ");
-	// (*(*right).getType()).print(outs());
-	// printf("\n");
-
-	// if ()
+	if (getTypeString(left) != getTypeString(right)) {
+		cerr << "[ERROR]variables type aren't equal: left is "
+			<< getTypeString(left) << ", right is " << getTypeString(right) << endl;
+		return NULL;
+	}
 
 	switch (op) {
 		case TPLUS:
-			return Builder.CreateAdd(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::Add;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateAdd(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFAdd(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
 		case TMINUS:
-			return Builder.CreateSub(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::Sub;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateSub(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFSub(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
 		case TMUL:
-			return Builder.CreateMul(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::Mul;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateMul(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFMul(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
 		case TDIV:
-			return Builder.CreateSDiv(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::SDiv;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateSDiv(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFDiv(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		case TCEQ:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpEQ(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOEQ(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		case TCNE:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpNE(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpONE(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		case TCLT:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSLT(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOLT(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		case TCLE:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSLE(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOLE(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		case TCGT:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSGT(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOGT(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		case TCGE:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSGE(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOGE(left, right);
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
+		default:
+			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			break;
 		/* TODO comparison*/
 		/* TODO default */
 	}
 	return NULL;
-math:
-	;
-	// TODO
-	// return BinaryOperator::Create(instr, leftSide.codeGen(context), rightSide.codeGen(context), "",
-	// 		context.currentBlock());
 }
 
 Value* NBlock::codeGen(CodeGenContext& context) {
