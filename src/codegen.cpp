@@ -2,6 +2,7 @@
 #include "codegen.h"
 #include "parser.hpp"
 #include "ts.h"
+#include "common.h"
 
 using namespace std;
 
@@ -135,73 +136,73 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 				return Builder.CreateAdd(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFAdd(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TMINUS:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateSub(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFSub(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TMUL:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateMul(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFMul(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TDIV:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateSDiv(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFDiv(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TCEQ:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateICmpEQ(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOEQ(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TCNE:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateICmpNE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpONE(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TCLT:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateICmpSLT(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOLT(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TCLE:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateICmpSLE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOLE(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TCGT:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateICmpSGT(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGT(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		case TCGE:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateICmpSGE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGE(left, right);
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 		default:
-			cerr << "[ERROR]unsupport calculate for " << getTypeString(left) << endl;
+			ast_error("unsupport calculate for" + getTypeString(left));
 			break;
 	}
 	return NULL;
@@ -229,6 +230,47 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 
 Value* NIfStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating if statement" << endl;
+
+	Value* condV = Builder.CreateICmpNE(condition.codeGen(context), ConstantInt::get(Type::getInt1Ty(TheContext), 0, true));
+
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+  	BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else", TheFunction);
+  	BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont", TheFunction);
+
+	Builder.CreateCondBr(condV, ThenBB, ElseBB);
+
+	// Emit then value.
+	TheFunction->getBasicBlockList().push_back(ThenBB);
+	Builder.SetInsertPoint(ThenBB);
+	Value *ThenV = thenBlock.codeGen(context);
+	if (!ThenV)
+		return nullptr;
+	Builder.CreateBr(MergeBB);
+	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+	ThenBB = Builder.GetInsertBlock();
+
+	// Emit else block.
+	TheFunction->getBasicBlockList().push_back(ElseBB);
+	Builder.SetInsertPoint(ElseBB);
+	Value *ElseV = elseBlock.codeGen(context);
+	if (!ElseV)
+		return nullptr;
+	Builder.CreateBr(MergeBB);
+	// Codegen of 'Else' can change the current block, update ElseBB for the PHI.
+	ElseBB = Builder.GetInsertBlock();
+
+	// Emit merge block.
+	TheFunction->getBasicBlockList().push_back(MergeBB);
+	// context.popBlock();
+	Builder.SetInsertPoint(MergeBB);
+	// context.pushBlock(MergeBB);
+	// PHINode *PN = Builder.CreatePHI(ThenV->getType(), 2, "iftmp");
+
+	// PN->addIncoming(ThenV, ThenBB);
+	// PN->addIncoming(ElseV, ElseBB);
+	// context.popBlock();
+	// return PN;
 
 	return NULL;
 }
@@ -263,7 +305,6 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 
 	auto *originBlock = Builder.GetInsertBlock();
 	Builder.SetInsertPoint(bblock);
-
 	context.pushBlock(bblock);
 
 	for (it = arguments.begin(); it != arguments.end(); it++) {
