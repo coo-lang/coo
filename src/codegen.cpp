@@ -231,7 +231,7 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 Value* NIfStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating if statement" << endl;
 
-	Value* condV = Builder.CreateICmpNE(condition.codeGen(context), ConstantInt::get(Type::getInt1Ty(TheContext), 0, true));
+	Value* condV = Builder.CreateICmpNE(condition.codeGen(context), ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "ifcond");
 
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
 	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
@@ -241,7 +241,7 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	Builder.CreateCondBr(condV, ThenBB, ElseBB);
 
 	// Emit then value.
-	TheFunction->getBasicBlockList().push_back(ThenBB);
+	// TheFunction->getBasicBlockList().push_back(ThenBB);
 	Builder.SetInsertPoint(ThenBB);
 	Value *ThenV = thenBlock.codeGen(context);
 	if (!ThenV)
@@ -251,7 +251,7 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	ThenBB = Builder.GetInsertBlock();
 
 	// Emit else block.
-	TheFunction->getBasicBlockList().push_back(ElseBB);
+	// TheFunction->getBasicBlockList().push_back(ElseBB);
 	Builder.SetInsertPoint(ElseBB);
 	Value *ElseV = elseBlock.codeGen(context);
 	if (!ElseV)
@@ -261,15 +261,13 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	ElseBB = Builder.GetInsertBlock();
 
 	// Emit merge block.
-	TheFunction->getBasicBlockList().push_back(MergeBB);
-	// context.popBlock();
+	// TheFunction->getBasicBlockList().push_back(MergeBB);
 	Builder.SetInsertPoint(MergeBB);
-	// context.pushBlock(MergeBB);
+	// TODO: PHI FIX
 	// PHINode *PN = Builder.CreatePHI(ThenV->getType(), 2, "iftmp");
 
 	// PN->addIncoming(ThenV, ThenBB);
 	// PN->addIncoming(ElseV, ElseBB);
-	// context.popBlock();
 	// return PN;
 
 	return NULL;

@@ -46,6 +46,7 @@ STRING_END ("\"")
 "true"|"false"              SAVE_TOKEN; return TBOOLLIT;
 "if"                        return TOKEN(TIF);
 "else"                      return TOKEN(TELSE);
+"for"                       return TOKEN(TFOR);
 
 [a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+(\.[0-9]*[fF]?|[fF])	SAVE_TOKEN; return TDOUBLELIT;
@@ -69,6 +70,7 @@ STRING_END ("\"")
 ">"						return TOKEN(TCGT);
 ">="					return TOKEN(TCGE);
 ":"           return TOKEN(TCOLON);
+";"           return TOKEN(TSEMICOLON);
 "("						return TOKEN(TLPAREN);
 ")"						return TOKEN(TRPAREN);
 "{"						return TOKEN(TLBRACE);

@@ -30,10 +30,10 @@ void yyerror(const char *s);
 
 %token <string> TIDENTIFIER TINTEGERLIT TDOUBLELIT TLONGLIT TBOOLLIT TSTRINGLIT
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
-%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON
+%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
-%token <token> TVAR TDEF TIF TELSE
+%token <token> TVAR TDEF TIF TELSE TFOR
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
@@ -65,7 +65,7 @@ stmts: { $$ = new NBlock();  }
 
 stmt: var_decl | func_decl
 	| expr { $$ = new NExpressionStatement(*$1); }
-	| if_stmt
+	| if_stmt | for_stmt
 	;
 
 block: TLBRACE stmts TRBRACE { $$ = $2; }
@@ -91,6 +91,9 @@ func_decl_args: /* Blank! */ {$$ = new VariableList(); }
 
 if_stmt: TIF expr block	{printf("parsing if block\n"); $$ = new NIfStatement(*$2, *$3); }
 	| TIF expr block TELSE block {printf("parsing if else block\n"); $$ = new NIfStatement(*$2, *$3, *$5); }
+	;
+
+for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {printf("parsing for block\n"); }
 	;
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
