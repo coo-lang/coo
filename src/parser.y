@@ -41,7 +41,7 @@ void yyerror(const char *s);
 %type <varvec> func_decl_args
 %type <exprvec> call_args
 %type <block> program stmts block
-%type <stmt> stmt var_decl func_decl_arg func_decl if_stmt
+%type <stmt> stmt var_decl func_decl_arg func_decl if_stmt for_stmt
 %type <token> comparison
 
 /* Operator precedence */
@@ -65,7 +65,8 @@ stmts: { $$ = new NBlock();  }
 
 stmt: var_decl | func_decl
 	| expr { $$ = new NExpressionStatement(*$1); }
-	| if_stmt | for_stmt
+	| if_stmt
+	| for_stmt
 	;
 
 block: TLBRACE stmts TRBRACE { $$ = $2; }
@@ -93,7 +94,7 @@ if_stmt: TIF expr block	{printf("parsing if block\n"); $$ = new NIfStatement(*$2
 	| TIF expr block TELSE block {printf("parsing if else block\n"); $$ = new NIfStatement(*$2, *$3, *$5); }
 	;
 
-for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {printf("parsing for block\n"); }
+for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {printf("parsing for block\n"); $$ = new NForStatement(*$2, *$4, *$6, *$7); }
 	;
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }

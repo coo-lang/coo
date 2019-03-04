@@ -273,6 +273,36 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	return NULL;
 }
 
+Value* NForStatement::codeGen(CodeGenContext& context) {
+	cout << "Generating for statement" << endl;
+
+	// start
+	start.codeGen(context);
+
+	// body and step
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
+	Builder.CreateBr(LoopBB);
+	Builder.SetInsertPoint(LoopBB);
+	block.codeGen(context);
+	step.codeGen(context);
+
+	// endcond
+	Value* endCond = end.codeGen(context);
+	endCond = Builder.CreateICmpNE(endCond,
+		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "loopcond");
+
+	// after
+	BasicBlock *AfterBB =
+      	BasicBlock::Create(TheContext, "afterloop", TheFunction);
+
+	// br
+	Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+	Builder.SetInsertPoint(AfterBB);
+
+	return NULL;
+}
+
 Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating code for " << typeid(expression).name() << endl;
 	return expression.codeGen(context);
