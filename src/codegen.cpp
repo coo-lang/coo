@@ -341,8 +341,13 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	Builder.SetInsertPoint(bblock);
 	context.pushBlock(bblock);
 
-	for (it = arguments.begin(); it != arguments.end(); it++) {
-		(**it).codeGen(context);
+	it = arguments.begin();
+	auto *arg = function->args().begin();
+	for (; it != arguments.end() && arg != function->args().end(); it++, arg++) {
+		// (**it).codeGen(context);
+		AllocaInst *alloc = Builder.CreateAlloca(typeOf((**it).type), 0, NULL, (**it).id.name.c_str());
+		context.locals()[(**it).id.name] = alloc;
+		Builder.CreateStore(arg, alloc);
 	}
 
 	block.codeGen(context);
