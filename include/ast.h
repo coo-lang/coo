@@ -133,6 +133,13 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
+class NRet : public NExpression {
+public:
+	NExpression& expression;
+	NRet(NExpression& expression) : expression(expression) {}
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
 class NVariableDeclaration : public NStatement {
 public:
 	const NIdentifier& type;

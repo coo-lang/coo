@@ -1,0 +1,12 @@
+def foo(): int {
+    var sign: int = 1
+    var a: int = 123
+    var b: int = 456
+    if sign > 0 {
+        ret a
+    } else {
+        ret b
+    }
+}
+var result: int = foo()
+print("result is %d", result)

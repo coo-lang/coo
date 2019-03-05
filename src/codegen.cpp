@@ -57,7 +57,7 @@ static Type *typeOf(const NIdentifier type) {
 	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
 	} else if (type.name.compare("string") == 0) {
-		return Type::getVoidTy(TheContext);
+		return Type::getInt8PtrTy(TheContext);
 	} else if (type.name.compare("bool") == 0) {
 		return Type::getInt1Ty(TheContext);
 	}
@@ -265,7 +265,6 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	Builder.SetInsertPoint(MergeBB);
 	// TODO: PHI FIX
 	// PHINode *PN = Builder.CreatePHI(ThenV->getType(), 2, "iftmp");
-
 	// PN->addIncoming(ThenV, ThenBB);
 	// PN->addIncoming(ElseV, ElseBB);
 	// return PN;
@@ -308,6 +307,12 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 	return expression.codeGen(context);
 }
 
+Value* NRet::codeGen(CodeGenContext& context) {
+	cout << "Generating ret for " << typeid(expression).name() << endl;
+
+	return Builder.CreateRet(expression.codeGen(context));
+}
+
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
@@ -335,14 +340,17 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	Builder.SetInsertPoint(bblock);
 	context.pushBlock(bblock);
 
-	for (it = arguments.begin(); it != arguments.end(); it++) {
-		(**it).codeGen(context);
+	it = arguments.begin();
+	auto *arg = function->args().begin();
+	for (; it != arguments.end() && arg != function->args().end(); it++, arg++) {
+		AllocaInst *alloc = Builder.CreateAlloca(typeOf((**it).type), 0, NULL, (**it).id.name.c_str());
+		context.locals()[(**it).id.name] = alloc;
+		Builder.CreateStore(arg, alloc);
 	}
 
 	block.codeGen(context);
-	// Builder.CreateRet(bblock);
 
-	ReturnInst::Create(TheContext, bblock);
+	Builder.CreateRetVoid();
 
 	context.popBlock();
 	Builder.SetInsertPoint(originBlock);

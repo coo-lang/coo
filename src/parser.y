@@ -33,11 +33,11 @@ void yyerror(const char *s);
 %token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
-%token <token> TVAR TDEF TIF TELSE TFOR
+%token <token> TVAR TDEF TIF TELSE TFOR TRET
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
-%type <expr> numeric boolean string expr
+%type <expr> numeric boolean string expr ret_expr
 %type <varvec> func_decl_args
 %type <exprvec> call_args
 %type <block> program stmts block
@@ -65,6 +65,7 @@ stmts: { $$ = new NBlock();  }
 
 stmt: var_decl | func_decl
 	| expr { $$ = new NExpressionStatement(*$1); }
+	| ret_expr { $$ = new NExpressionStatement(*$1); }
 	| if_stmt
 	| for_stmt
 	;
@@ -124,6 +125,9 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| boolean
 	| string
 	;
+
+ret_expr: TRET expr	{printf("ret expr"); $$ = new NRet(*$2); }
+		;
 
 call_args: /* Blank! */ { $$ = new ExpressionList(); }
 	    | expr { $$ = new ExpressionList(); $$->push_back($1); }
