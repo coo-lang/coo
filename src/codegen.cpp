@@ -308,6 +308,12 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 	return expression.codeGen(context);
 }
 
+Value* NRet::codeGen(CodeGenContext& context) {
+	cout << "Generating ret for " << typeid(expression).name() << endl;
+
+	return Builder.CreateRet(expression.codeGen(context));
+}
+
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
@@ -342,7 +348,7 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	block.codeGen(context);
 	// Builder.CreateRet(bblock);
 
-	ReturnInst::Create(TheContext, bblock);
+	ReturnInst::Create(TheContext, Builder.GetInsertBlock());
 
 	context.popBlock();
 	Builder.SetInsertPoint(originBlock);
