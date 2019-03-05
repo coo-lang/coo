@@ -57,7 +57,7 @@ static Type *typeOf(const NIdentifier type) {
 	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
 	} else if (type.name.compare("string") == 0) {
-		return Type::getVoidTy(TheContext);
+		return Type::getInt8PtrTy(TheContext);
 	} else if (type.name.compare("bool") == 0) {
 		return Type::getInt1Ty(TheContext);
 	}
