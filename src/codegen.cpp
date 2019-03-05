@@ -265,7 +265,6 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	Builder.SetInsertPoint(MergeBB);
 	// TODO: PHI FIX
 	// PHINode *PN = Builder.CreatePHI(ThenV->getType(), 2, "iftmp");
-
 	// PN->addIncoming(ThenV, ThenBB);
 	// PN->addIncoming(ElseV, ElseBB);
 	// return PN;
@@ -344,16 +343,14 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	it = arguments.begin();
 	auto *arg = function->args().begin();
 	for (; it != arguments.end() && arg != function->args().end(); it++, arg++) {
-		// (**it).codeGen(context);
 		AllocaInst *alloc = Builder.CreateAlloca(typeOf((**it).type), 0, NULL, (**it).id.name.c_str());
 		context.locals()[(**it).id.name] = alloc;
 		Builder.CreateStore(arg, alloc);
 	}
 
 	block.codeGen(context);
-	// Builder.CreateRet(bblock);
 
-	ReturnInst::Create(TheContext, Builder.GetInsertBlock());
+	Builder.CreateRetVoid();
 
 	context.popBlock();
 	Builder.SetInsertPoint(originBlock);
