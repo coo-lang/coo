@@ -3,19 +3,21 @@
 # Implementation of coo-test-cli script for test work
 
 # Script name
-BASH_CLI_SCRIPT_NAME="ctcli.sh"
+BASH_CLI_SCRIPT_NAME="test-cli.sh"
 
 # Option name
 BASH_CLI_OPT_NAME[0]="-f"
 BASH_CLI_OPT_NAME[1]="create"
 BASH_CLI_OPT_NAME[2]="remove"
 BASH_CLI_OPT_NAME[3]="test"
+BASH_CLI_OPT_NAME[4]="show"
 
 # Alternative option name
 BASH_CLI_OPT_ALT_NAME[0]="--filename"
 BASH_CLI_OPT_ALT_NAME[1]="new"
 BASH_CLI_OPT_ALT_NAME[2]="delete"
 BASH_CLI_OPT_ALT_NAME[3]="run"
+BASH_CLI_OPT_ALT_NAME[4]="look"
 
 # Data type consists of string, boolean, and cmd.
 #   - string does not allow you set empty option value
@@ -25,6 +27,7 @@ BASH_CLI_OPT_DATA_TYPE[0]="string"
 BASH_CLI_OPT_DATA_TYPE[1]="cmd"
 BASH_CLI_OPT_DATA_TYPE[2]="cmd"
 BASH_CLI_OPT_DATA_TYPE[3]="cmd"
+BASH_CLI_OPT_DATA_TYPE[4]="cmd"
 
 # Setting mandatory and optional parameters for cmd "create"
 #
@@ -43,6 +46,7 @@ BASH_CLI_OPT_DESC[0]="filename"
 BASH_CLI_OPT_DESC[1]="To create test case with the value of -f"
 BASH_CLI_OPT_DESC[2]="To delete test case with the value of -f"
 BASH_CLI_OPT_DESC[3]="To run test cases in test directory, add -f will run designated test case"
+BASH_CLI_OPT_DESC[4]="show all test case"
 
 # Implementation of "create" command
 #
@@ -77,6 +81,8 @@ remove() {
 }
 
 test() {
+    make
+
     local filename=${BASH_CLI_OPT_VALUE[0]}
 
     if [ ${filename} == "<undefined>" ]; then
@@ -93,13 +99,25 @@ test() {
                 echo "[OK]pass ${filename} test case"
             else
                 failed_arr+=(${f})
-                echo "Run Fail"
+                echo "Execution Result Incorrect"
             fi
         else
             failed_arr+=(${f})
             echo "Build Fail"
         fi
     fi
+
+    exit
+}
+
+show() {
+    echo -e "[Showing Tests]showing test cases \n"
+
+    for f in `find ./test/examples/*.coo -type f`
+    do
+        printf '%-50s\t' ${f}
+        echo "`head ${f} -n 1`"
+    done
 
     exit
 }

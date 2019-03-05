@@ -1,6 +1,8 @@
 #include "ast.h"
 #include "codegen.h"
 #include "parser.hpp"
+#include "ts.h"
+#include "common.h"
 
 using namespace std;
 
@@ -56,6 +58,8 @@ static Type *typeOf(const NIdentifier type) {
 		return Type::getDoubleTy(TheContext);
 	} else if (type.name.compare("string") == 0) {
 		return Type::getVoidTy(TheContext);
+	} else if (type.name.compare("bool") == 0) {
+		return Type::getInt1Ty(TheContext);
 	}
 	return Type::getVoidTy(TheContext);
 }
@@ -112,38 +116,96 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 
 	cout << "Creating method call: " << id.name << endl;
 	return call;
-
 }
 
 Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 	cout << "Creating binary operation " << op << endl;
 	Instruction::BinaryOps instr;
+	Value* left = leftSide.codeGen(context);
+	Value* right = rightSide.codeGen(context);
+
+	if (getTypeString(left) != getTypeString(right)) {
+		cerr << "[ERROR]variables type aren't equal: left is "
+			<< getTypeString(left) << ", right is " << getTypeString(right) << endl;
+		return NULL;
+	}
+
 	switch (op) {
 		case TPLUS:
-			return Builder.CreateAdd(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::Add;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateAdd(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFAdd(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
 		case TMINUS:
-			return Builder.CreateSub(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::Sub;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateSub(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFSub(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
 		case TMUL:
-			return Builder.CreateMul(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::Mul;
-			goto math;
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateMul(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFMul(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
 		case TDIV:
-			return Builder.CreateSDiv(leftSide.codeGen(context), rightSide.codeGen(context));
-			instr = Instruction::SDiv;
-			goto math;
-		/* TODO comparison*/
-		/* TODO default */
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateSDiv(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFDiv(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		case TCEQ:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpEQ(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOEQ(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		case TCNE:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpNE(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpONE(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		case TCLT:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSLT(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOLT(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		case TCLE:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSLE(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOLE(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		case TCGT:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSGT(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOGT(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		case TCGE:
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+				return Builder.CreateICmpSGE(left, right);
+			if (getTypeString(left) == "double")
+				return Builder.CreateFCmpOGE(left, right);
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
+		default:
+			ast_error("unsupport calculate for" + getTypeString(left));
+			break;
 	}
 	return NULL;
-math:
-	;
-	// TODO
-	// return BinaryOperator::Create(instr, leftSide.codeGen(context), rightSide.codeGen(context), "",
-	// 		context.currentBlock());
 }
 
 Value* NBlock::codeGen(CodeGenContext& context) {
@@ -166,6 +228,81 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
 }
 
+Value* NIfStatement::codeGen(CodeGenContext& context) {
+	cout << "Generating if statement" << endl;
+
+	Value* condV = Builder.CreateICmpNE(condition.codeGen(context), ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "ifcond");
+
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+  	BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else", TheFunction);
+  	BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont", TheFunction);
+
+	Builder.CreateCondBr(condV, ThenBB, ElseBB);
+
+	// Emit then value.
+	// TheFunction->getBasicBlockList().push_back(ThenBB);
+	Builder.SetInsertPoint(ThenBB);
+	Value *ThenV = thenBlock.codeGen(context);
+	if (!ThenV)
+		return nullptr;
+	Builder.CreateBr(MergeBB);
+	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+	ThenBB = Builder.GetInsertBlock();
+
+	// Emit else block.
+	// TheFunction->getBasicBlockList().push_back(ElseBB);
+	Builder.SetInsertPoint(ElseBB);
+	Value *ElseV = elseBlock.codeGen(context);
+	if (!ElseV)
+		return nullptr;
+	Builder.CreateBr(MergeBB);
+	// Codegen of 'Else' can change the current block, update ElseBB for the PHI.
+	ElseBB = Builder.GetInsertBlock();
+
+	// Emit merge block.
+	// TheFunction->getBasicBlockList().push_back(MergeBB);
+	Builder.SetInsertPoint(MergeBB);
+	// TODO: PHI FIX
+	// PHINode *PN = Builder.CreatePHI(ThenV->getType(), 2, "iftmp");
+
+	// PN->addIncoming(ThenV, ThenBB);
+	// PN->addIncoming(ElseV, ElseBB);
+	// return PN;
+
+	return NULL;
+}
+
+Value* NForStatement::codeGen(CodeGenContext& context) {
+	cout << "Generating for statement" << endl;
+
+	// start
+	start.codeGen(context);
+
+	// body and step
+	Function *TheFunction = Builder.GetInsertBlock()->getParent();
+	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
+	Builder.CreateBr(LoopBB);
+	Builder.SetInsertPoint(LoopBB);
+	block.codeGen(context);
+	step.codeGen(context);
+
+	// endcond
+	Value* endCond = end.codeGen(context);
+	endCond = Builder.CreateICmpNE(endCond,
+		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "loopcond");
+
+	// after
+	BasicBlock *AfterBB =
+      	BasicBlock::Create(TheContext, "afterloop", TheFunction);
+
+	// br
+	Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+	Builder.SetInsertPoint(AfterBB);
+
+	return NULL;
+}
+
 Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating code for " << typeid(expression).name() << endl;
 	return expression.codeGen(context);
@@ -184,6 +321,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 }
 
 Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
+	cout << "Generating function statement" << endl;
 	std::vector<Type*> argTypes;
 	VariableList::const_iterator it;
 	for (it = arguments.begin(); it != arguments.end(); it++) {
@@ -195,7 +333,6 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 
 	auto *originBlock = Builder.GetInsertBlock();
 	Builder.SetInsertPoint(bblock);
-
 	context.pushBlock(bblock);
 
 	for (it = arguments.begin(); it != arguments.end(); it++) {

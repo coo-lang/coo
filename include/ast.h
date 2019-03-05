@@ -103,6 +103,29 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
+class NIfStatement : public NStatement {
+public:
+	NExpression& condition;
+	NBlock thenBlock;
+	NBlock elseBlock;
+	NIfStatement(NExpression& condition, NBlock thenBlock) :
+		condition(condition), thenBlock(thenBlock) {}
+	NIfStatement(NExpression& condition, NBlock thenBlock, NBlock elseBlock) :
+		condition(condition), thenBlock(thenBlock), elseBlock(elseBlock) {}
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+class NForStatement : public NStatement {
+public:
+	NExpression& start;
+	NExpression& end;
+	NExpression& step;
+	NBlock block;
+	NForStatement(NExpression& start, NExpression& end, NExpression& step, NBlock block) :
+		start(start), end(end), step(step), block(block) {}
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
 class NExpressionStatement : public NStatement {
 public:
 	NExpression& expression;

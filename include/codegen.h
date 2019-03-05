@@ -34,7 +34,6 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
 
-
 using namespace llvm;
 
 class NBlock;
