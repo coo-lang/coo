@@ -37,11 +37,11 @@ void yyerror(const char *s);
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
-%type <expr> numeric boolean string expr ret_expr
+%type <expr> numeric boolean string expr
 %type <varvec> func_decl_args
 %type <exprvec> call_args
 %type <block> program stmts block
-%type <stmt> stmt var_decl func_decl_arg func_decl if_stmt for_stmt
+%type <stmt> stmt var_decl func_decl_arg func_decl if_stmt for_stmt ret_stmt
 %type <token> comparison
 
 /* Operator precedence */
@@ -65,7 +65,7 @@ stmts: { $$ = new NBlock();  }
 
 stmt: var_decl | func_decl
 	| expr { $$ = new NExpressionStatement(*$1); }
-	| ret_expr { $$ = new NExpressionStatement(*$1); }
+	| ret_stmt
 	| if_stmt
 	| for_stmt
 	;
@@ -119,6 +119,7 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| expr TMUL expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TDIV expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr comparison expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
+	| TMINUS expr {$$ = new NUnaryOperator($1, *$2); }
 	| TLPAREN expr TRPAREN { $$ = $2; }
 	| ident { $<ident>$ = $1; }
 	| numeric
@@ -126,7 +127,7 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| string
 	;
 
-ret_expr: TRET expr	{printf("ret expr"); $$ = new NRet(*$2); }
+ret_stmt: TRET expr	{printf("ret expr"); $$ = new NRet(*$2); }
 		;
 
 call_args: /* Blank! */ { $$ = new ExpressionList(); }

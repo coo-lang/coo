@@ -76,6 +76,15 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
+class NUnaryOperator : public NExpression {
+public:
+	int op;
+	NExpression& rightSide;
+	NUnaryOperator(int op, NExpression& rightSide) :
+		op(op), rightSide(rightSide) { }
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
 class NBinaryOperator : public NExpression {
 public:
 	int op;
@@ -133,7 +142,7 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
-class NRet : public NExpression {
+class NRet : public NStatement {
 public:
 	NExpression& expression;
 	NRet(NExpression& expression) : expression(expression) {}

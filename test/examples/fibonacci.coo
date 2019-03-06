@@ -1,0 +1,12 @@
+def fibonacci(n: int): int {
+    if n <= 1 {
+        ret n
+    } else {
+        ret fibonacci(n - 1) + fibonacci(n - 2)
+    }
+}
+
+var i: int
+for i = 1; i <= 30; i = i + 1 {
+    print("%d level fibonacci result is %d", i, fibonacci(i))
+}
