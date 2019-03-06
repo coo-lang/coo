@@ -118,9 +118,30 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 	return call;
 }
 
+Value* NUnaryOperator::codeGen(CodeGenContext& context) {
+	cout << "Creating unary operation " << op << endl;
+	Value* right = rightSide.codeGen(context);
+
+	switch (op) {
+		case TMINUS:
+			if (getTypeString(right) == "i32")
+				return Builder.CreateSub(ConstantInt::get(Type::getInt32Ty(TheContext), 0, true), right);
+			if (getTypeString(right) == "i64")
+				return Builder.CreateSub(ConstantInt::get(Type::getInt64Ty(TheContext), 0, true), right);
+			if (getTypeString(right) == "double")
+				return Builder.CreateFSub(ConstantFP::get(Type::getDoubleTy(TheContext), 0.0), right);
+			ast_error("unsupport calculate for " + getTypeString(right));
+			break;
+		default:
+			ast_error("unsupport calculate for calculator: " + op);
+			break;
+	}
+
+	return NULL;
+}
+
 Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 	cout << "Creating binary operation " << op << endl;
-	Instruction::BinaryOps instr;
 	Value* left = leftSide.codeGen(context);
 	Value* right = rightSide.codeGen(context);
 
@@ -199,10 +220,10 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 				return Builder.CreateICmpSGE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGE(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		default:
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for calculator: " + op);
 			break;
 	}
 	return NULL;

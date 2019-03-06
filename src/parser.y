@@ -119,6 +119,7 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| expr TMUL expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TDIV expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr comparison expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
+	| TMINUS expr {$$ = new NUnaryOperator($1, *$2); }
 	| TLPAREN expr TRPAREN { $$ = $2; }
 	| ident { $<ident>$ = $1; }
 	| numeric
