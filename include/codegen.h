@@ -43,6 +43,7 @@ static IRBuilder<> Builder(TheContext);
 class CodeGenBlock {
 public:
 	BasicBlock *block;
+	Value* returnValue;
 	std::map<std::string, Value*> locals;
 };
 
@@ -76,7 +77,7 @@ public:
 	void generateCode(NBlock& root);
 	GenericValue runCode();
 	std::map<std::string, Value*>& locals() { return blocks.top()->locals; }
-	BasicBlock *currentBlock() { return blocks.top()->block; }
+	CodeGenBlock* currentBlock() { return blocks.top(); }
 	void pushBlock(BasicBlock *block) { blocks.push(new CodeGenBlock()); blocks.top()->block = block; }
 	void popBlock() { CodeGenBlock *top = blocks.top(); blocks.pop(); delete top; }
 };

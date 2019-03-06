@@ -142,7 +142,7 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
-class NRet : public NExpression {
+class NRet : public NStatement {
 public:
 	NExpression& expression;
 	NRet(NExpression& expression) : expression(expression) {}

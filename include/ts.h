@@ -2,5 +2,6 @@
 #define COOCOMPILER_TS_H
 
 std::string getTypeString(llvm::Value* value);
+std::string getTypeString(llvm::Type* type);
 
 #endif

@@ -1,11 +1,9 @@
 def fibonacci(n: int): int {
-    var res: int
     if n <= 1 {
-        res = n
+        ret n
     } else {
-        res = fibonacci(n - 1) + fibonacci(n - 2)
+        ret fibonacci(n - 1) + fibonacci(n - 2)
     }
-    ret res
 }
 
 var i: int

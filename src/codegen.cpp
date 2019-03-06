@@ -233,8 +233,10 @@ Value* NBlock::codeGen(CodeGenContext& context) {
 	StatementList::const_iterator it;
 	Value *last = NULL;
 	for (it = statements.begin(); it != statements.end(); it++) {
-		cout << "Generating code for " << typeid(**it).name() << endl;
+		cout << "Generating code for ===== " << typeid(**it).name() << endl;
 		last = (**it).codeGen(context);
+		// break block generating if ret statement
+		if (typeid(**it).name() == "4NRet") break;
 	}
 	cout << "Creating block" << endl;
 	return last;
@@ -262,33 +264,19 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	Builder.CreateCondBr(condV, ThenBB, ElseBB);
 
 	// Emit then value.
-	// TheFunction->getBasicBlockList().push_back(ThenBB);
 	Builder.SetInsertPoint(ThenBB);
-	Value *ThenV = thenBlock.codeGen(context);
-	if (!ThenV)
-		return nullptr;
+	thenBlock.codeGen(context);
 	Builder.CreateBr(MergeBB);
-	// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
-	ThenBB = Builder.GetInsertBlock();
+	// ThenBB = Builder.GetInsertBlock();
 
 	// Emit else block.
-	// TheFunction->getBasicBlockList().push_back(ElseBB);
 	Builder.SetInsertPoint(ElseBB);
-	Value *ElseV = elseBlock.codeGen(context);
-	if (!ElseV)
-		return nullptr;
+	elseBlock.codeGen(context);
 	Builder.CreateBr(MergeBB);
-	// Codegen of 'Else' can change the current block, update ElseBB for the PHI.
-	ElseBB = Builder.GetInsertBlock();
+	// ElseBB = Builder.GetInsertBlock();
 
 	// Emit merge block.
-	// TheFunction->getBasicBlockList().push_back(MergeBB);
 	Builder.SetInsertPoint(MergeBB);
-	// TODO: PHI FIX
-	// PHINode *PN = Builder.CreatePHI(ThenV->getType(), 2, "iftmp");
-	// PN->addIncoming(ThenV, ThenBB);
-	// PN->addIncoming(ElseV, ElseBB);
-	// return PN;
 
 	return NULL;
 }
@@ -331,7 +319,9 @@ Value* NExpressionStatement::codeGen(CodeGenContext& context) {
 Value* NRet::codeGen(CodeGenContext& context) {
 	cout << "Generating ret for " << typeid(expression).name() << endl;
 
-	return Builder.CreateRet(expression.codeGen(context));
+	Builder.CreateStore(expression.codeGen(context), context.currentBlock()->returnValue);
+
+	return NULL;
 }
 
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
@@ -357,10 +347,15 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function);
 
+	// store context before function
 	auto *originBlock = Builder.GetInsertBlock();
 	Builder.SetInsertPoint(bblock);
 	context.pushBlock(bblock);
 
+	// return value initialize
+	context.currentBlock()->returnValue = Builder.CreateAlloca(typeOf(type), 0, NULL, "");
+
+	// arguments initialize
 	it = arguments.begin();
 	auto *arg = function->args().begin();
 	for (; it != arguments.end() && arg != function->args().end(); it++, arg++) {
@@ -369,10 +364,13 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 		Builder.CreateStore(arg, alloc);
 	}
 
+	// block generate
 	block.codeGen(context);
 
-	Builder.CreateRetVoid();
+	// return value
+	Builder.CreateRet(Builder.CreateLoad(context.currentBlock()->returnValue));
 
+	// restore context after function
 	context.popBlock();
 	Builder.SetInsertPoint(originBlock);
 	cout << "Creating function: " << id.name << endl;
