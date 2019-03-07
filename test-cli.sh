@@ -92,9 +92,11 @@ test() {
         echo "[Start Testing One File]running ${filename}"
         ./coo "test/examples/${filename}.coo" "test/output/${filename}"
         if [ $? -eq 0 ]; then
-            echo "BUILD FINE"
+            echo "Building well, linking obejct..."
             clang -o "test/output/${filename}" "test/output/${filename}.o" "./build/obj/builtin.o"
+            echo "Running test/output/${filename}"
             "test/output/${filename}" > "test/output/${filename}.result"
+            echo "Comparing test/output/${filename}.result with test/expect/${filename}.expect"
             if cmp "test/output/${filename}.result" "test/expect/${filename}.expect"; then # cmp return `true` if same
                 echo "[OK]pass ${filename} test case"
             else

@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	context.generateCode(*programBlock);
 
 	// redirect stdout to file
-	std::cout << "write to file: " << outFile + ".ll" << std::endl;
+	std::cout << inFile << " compiling to llvm ir file: " << outFile + ".ll" << std::endl;
 	FILE *fp = freopen((outFile + ".ll").c_str(),"w",stdout);
 	context.module->print(outs(), nullptr);
 
