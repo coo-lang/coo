@@ -37,5 +37,5 @@ done
 echo "total test cases: ${sum}, successed ${success}, failed `expr ${sum} - ${success}`"
 
 echo "======================================"
-echo "Failed tes cases:"
+echo "Failed test cases:"
 printf '%s\n' "${failed_arr[@]}"
