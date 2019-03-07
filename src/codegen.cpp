@@ -157,66 +157,66 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 				return Builder.CreateAdd(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFAdd(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TMINUS:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateSub(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFSub(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TMUL:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateMul(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFMul(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TDIV:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateSDiv(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFDiv(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCEQ:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpEQ(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOEQ(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCNE:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpNE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpONE(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCLT:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSLT(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOLT(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCLE:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSLE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOLE(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCGT:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSGT(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGT(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCGE:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSGE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGE(left, right);

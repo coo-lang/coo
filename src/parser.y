@@ -91,8 +91,8 @@ func_decl_args: /* Blank! */ {$$ = new VariableList(); }
 			| func_decl_args TCOMMA func_decl_arg { $1->push_back($<var_decl>3); }
 			;
 
-if_stmt: TIF expr block	{printf("parsing if block\n"); $$ = new NIfStatement(*$2, *$3); }
-	| TIF expr block TELSE block {printf("parsing if else block\n"); $$ = new NIfStatement(*$2, *$3, *$5); }
+if_stmt: TIF expr block	{ $$ = new NIfStatement(*$2, *$3); }
+	| TIF expr block TELSE block { $$ = new NIfStatement(*$2, *$3, *$5); }
 	;
 
 for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {printf("parsing for block\n"); $$ = new NForStatement(*$2, *$4, *$6, *$7); }
