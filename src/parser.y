@@ -95,7 +95,8 @@ if_stmt: TIF expr block	{ $$ = new NIfStatement(*$2, *$3); }
 	| TIF expr block TELSE block { $$ = new NIfStatement(*$2, *$3, *$5); }
 	;
 
-for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {printf("parsing for block\n"); $$ = new NForStatement(*$2, *$4, *$6, *$7); }
+for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, $6, *$7); }
+	| TFOR expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, *$5); }
 	;
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }

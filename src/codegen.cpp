@@ -285,7 +285,8 @@ Value* NForStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating for statement" << endl;
 
 	// start
-	start.codeGen(context);
+	if (start)
+		start->codeGen(context);
 
 	// body and step
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
@@ -293,10 +294,11 @@ Value* NForStatement::codeGen(CodeGenContext& context) {
 	Builder.CreateBr(LoopBB);
 	Builder.SetInsertPoint(LoopBB);
 	block.codeGen(context);
-	step.codeGen(context);
+	if (step)
+		step->codeGen(context);
 
 	// endcond
-	Value* endCond = end.codeGen(context);
+	Value* endCond = end->codeGen(context);
 	endCond = Builder.CreateICmpNE(endCond,
 		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "loopcond");
 

@@ -126,12 +126,14 @@ public:
 
 class NForStatement : public NStatement {
 public:
-	NExpression& start;
-	NExpression& end;
-	NExpression& step;
+	NExpression* start;
+	NExpression* end;
+	NExpression* step;
 	NBlock block;
-	NForStatement(NExpression& start, NExpression& end, NExpression& step, NBlock block) :
+	NForStatement(NExpression* start, NExpression* end, NExpression* step, NBlock block) :
 		start(start), end(end), step(step), block(block) {}
+	NForStatement(NExpression* end, NExpression* step, NBlock block) :
+		end(end), step(step), block(block) {}
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
