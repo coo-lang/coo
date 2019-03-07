@@ -288,26 +288,28 @@ Value* NForStatement::codeGen(CodeGenContext& context) {
 	if (start)
 		start->codeGen(context);
 
-	// body and step
+	// body and after block
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
-	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
-	Builder.CreateBr(LoopBB);
+	BasicBlock *endCondBB = BasicBlock::Create(TheContext, "endcondBB", TheFunction);
+	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loopBB", TheFunction);
+	BasicBlock *AfterBB = BasicBlock::Create(TheContext, "afterloopBB", TheFunction);
+
+	Builder.CreateBr(endCondBB);
+	// endcond and conditional br
+	Builder.SetInsertPoint(endCondBB);
+	Value* endCond = end->codeGen(context);
+	endCond = Builder.CreateICmpNE(endCond,
+		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "endcond");
+	Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+
+	// body and step generate
 	Builder.SetInsertPoint(LoopBB);
 	block.codeGen(context);
 	if (step)
 		step->codeGen(context);
+	Builder.CreateBr(endCondBB);
 
-	// endcond
-	Value* endCond = end->codeGen(context);
-	endCond = Builder.CreateICmpNE(endCond,
-		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "loopcond");
-
-	// after
-	BasicBlock *AfterBB =
-      	BasicBlock::Create(TheContext, "afterloop", TheFunction);
-
-	// br
-	Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+	// after loop
 	Builder.SetInsertPoint(AfterBB);
 
 	return NULL;
