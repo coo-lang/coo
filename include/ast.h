@@ -134,6 +134,8 @@ public:
 		start(start), end(end), step(step), block(block) {}
 	NForStatement(NExpression* end, NExpression* step, NBlock block) :
 		end(end), step(step), block(block) {}
+	NForStatement(NExpression* end, NBlock block) :
+		end(end), block(block) {}
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
