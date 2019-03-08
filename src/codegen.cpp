@@ -64,6 +64,20 @@ static Type *typeOf(const NIdentifier type) {
 	return Type::getVoidTy(TheContext);
 }
 
+static Value *getArrayIndex(Value* array,  Value* index) {
+	std::vector<Value*> indices;
+
+	cout << "array type is: " << getTypeString(array) << endl;
+	if (getTypeString(array) != "i8**") {
+		indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 0, false));
+	} else {
+		array = Builder.CreateLoad(array);
+	}
+	indices.push_back(index);
+
+	return Builder.CreateInBoundsGEP(array, makeArrayRef(indices), "");
+}
+
 /* Code Generation */
 Value* NInteger::codeGen(CodeGenContext& context) {
 	cout << "Creating Integer: " << value << endl;
@@ -96,6 +110,11 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << name << endl;
 		return NULL;
 	}
+
+	if (index != NULL) {
+		return Builder.CreateLoad(getArrayIndex(context.locals()[name], index->codeGen(context)), "");
+	}
+
 	return Builder.CreateLoad(context.locals()[name], "");
 }
 
@@ -116,23 +135,6 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 
 	cout << "Creating method call: " << id.name << endl;
 	return call;
-}
-
-Value* NArrayIndex::codeGen(CodeGenContext& context) {
-	cout << "Creating Array index caculate: " << id.name << endl;
-
-	if (context.locals().find(id.name) == context.locals().end()) {
-		cerr << "undeclared variable " << id.name << endl;
-		return NULL;
-	}
-
-	auto ptr = Builder.CreateLoad(context.locals()[id.name]);
-
-	std::vector<Value*> indices;
-	indices.push_back(index.codeGen(context));
-	auto val = Builder.CreateInBoundsGEP(ptr, makeArrayRef(indices), "");
-
-	return Builder.CreateLoad(val, "");
 }
 
 Value* NUnaryOperator::codeGen(CodeGenContext& context) {
@@ -265,7 +267,14 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+
+	if (leftSide.index && context.locals()[leftSide.name]->getType()->isPtrOrPtrVectorTy()) {
+		return Builder.CreateStore(rightSide.codeGen(context), getArrayIndex(context.locals()[leftSide.name], leftSide.index->codeGen(context)), false);
+	} else {
+		return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+	}
+
+	return NULL;
 }
 
 Value* NIfStatement::codeGen(CodeGenContext& context) {
@@ -354,19 +363,17 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 		auto arrayType = ArrayType::get(typeOf(type), arraySize);
 		alloc = Builder.CreateAlloca(arrayType, arraySizeValue);
 
+		// array value initializing
 		std::vector<Value*> values;
 		ExpressionList::const_iterator it;
-		for (it = arrayValue.begin(); it != arrayValue.end(); it++) {
-			// todo: check array element is legal type
-			values.push_back((**it).codeGen(context));
+		for (int i = 0; i < arrayValue.size(); i++) {
+			std::vector<Value*> indices;
+			indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 0, true));
+			indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), i, true));
+			auto idx = Builder.CreateInBoundsGEP(alloc, makeArrayRef(indices), "");
+
+			Builder.CreateStore((*arrayValue[i]).codeGen(context), idx);
 		}
-
-
-		// context.locals()[id.name] = alloc;
-		// auto ptr = context.builder.CreateInBoundsGEP(varPtr, gep2_array, "elementPtr");
-		// auto ptr = context.builder.CreateInBoundsGEP(varPtr, gep2_array, "elementPtr");
-
- 		// Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
 	} else {
 		alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
 	}

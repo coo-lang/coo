@@ -103,6 +103,7 @@ for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {$$ = new NForStatemen
 	;
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
+	| TIDENTIFIER TLBRACKET expr TRBRACKET { $$ = new NIdentifier(*$1, $3); delete $1; }
 	;
 
 numeric: TINTEGERLIT { $$ = new NInteger(atoi($1->c_str())); delete $1; }
@@ -118,7 +119,7 @@ string: TSTRINGLIT {$$ = new NString(*$1); delete $1; }
 
 expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| ident TLPAREN call_args TRPAREN { $$ = new NMethodCall(*$1, *$3); delete $3; }
-	| ident TLBRACKET expr TRBRACKET { $$ = new NArrayIndex(*$1, *$3); }
+
 	| expr TPLUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TMINUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TMUL expr { $$ = new NBinaryOperator(*$1, $2, *$3); }

@@ -1,1 +1,4 @@
 var a: [2]int = {1, 2}
+print("before array assignment: index 1 of a is %d", a[1])
+a[1] = 3
+print("after array assignment: index 1 of a is %d", a[1])

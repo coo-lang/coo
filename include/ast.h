@@ -62,7 +62,9 @@ public:
 class NIdentifier : public NExpression {
 public:
 	std::string name;
+	NExpression* index;
 	NIdentifier(const std::string& name) : name(name) { }
+	NIdentifier(const std::string& name, NExpression* index) : name(name), index(index) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
@@ -114,9 +116,9 @@ public:
 
 class NAssignment : public NExpression {
 public:
-	const NIdentifier& leftSide;
+	NIdentifier& leftSide;
 	NExpression& rightSide;
-	NAssignment(const NIdentifier& leftSide, NExpression& rightSide) :
+	NAssignment(NIdentifier& leftSide, NExpression& rightSide) :
 		leftSide(leftSide), rightSide(rightSide) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
