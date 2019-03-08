@@ -74,6 +74,8 @@ STRING_END ("\"")
 ";"           return TOKEN(TSEMICOLON);
 "("						return TOKEN(TLPAREN);
 ")"						return TOKEN(TRPAREN);
+"["           return TOKEN(TLBRACKET);
+"]"           return TOKEN(TRBRACKET);
 "{"						return TOKEN(TLBRACE);
 "}"						return TOKEN(TRBRACE);
 "."						return TOKEN(TDOT);

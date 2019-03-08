@@ -30,10 +30,10 @@ void yyerror(const char *s);
 
 %token <string> TIDENTIFIER TINTEGERLIT TDOUBLELIT TLONGLIT TBOOLLIT TSTRINGLIT
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
-%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
+%token <token> TLPAREN TRPAREN TLBRACKET TRBRACKET TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
-%token <token> TVAR TDEF TIF TELSE TFOR TRET
+%token <token> TVAR TDEF TIF TELSE TFOR TRET TARRAY
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
@@ -75,6 +75,8 @@ block: TLBRACE stmts TRBRACE { $$ = $2; }
 	;
 
 var_decl: TVAR ident TCOLON ident { $$ = new NVariableDeclaration(*$4, *$2); }
+		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str())); }
+		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident TEQUAL TLBRACE call_args TRBRACE { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str()), *$10); delete $10; }
 		| TVAR ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$4, *$2, $6); }
 		;
 
@@ -116,6 +118,7 @@ string: TSTRINGLIT {$$ = new NString(*$1); delete $1; }
 
 expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| ident TLPAREN call_args TRPAREN { $$ = new NMethodCall(*$1, *$3); delete $3; }
+	| ident TLBRACKET expr TRBRACKET { $$ = new NArrayIndex(*$1, *$3); }
 	| expr TPLUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TMINUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TMUL expr { $$ = new NBinaryOperator(*$1, $2, *$3); }

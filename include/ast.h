@@ -76,6 +76,15 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
+class NArrayIndex : public NExpression {
+public:
+	const NIdentifier& id;
+	NExpression& index;
+	NArrayIndex(const NIdentifier& id, NExpression& index) :
+		id(id), index(index) { }
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
 class NUnaryOperator : public NExpression {
 public:
 	int op;
@@ -158,9 +167,14 @@ public:
 	const NIdentifier& type;
 	NIdentifier& id;
 	NExpression *assignmentExpr;
-	NVariableDeclaration(const NIdentifier& type, NIdentifier& id) : type(type), id(id) { }
+	int arraySize;
+	ExpressionList arrayValue;
+	NVariableDeclaration(const NIdentifier& type, NIdentifier& id) : type(type), id(id), arraySize(0) { }
+	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int arraySize) : type(type), id(id), arraySize(arraySize) { }
+	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int arraySize, ExpressionList arrayValue)
+		: type(type), id(id), arraySize(arraySize), arrayValue(arrayValue) { }
 	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
-		type(type), id(id), assignmentExpr(assignmentExpr) { }
+		type(type), id(id), assignmentExpr(assignmentExpr), arraySize(0) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 

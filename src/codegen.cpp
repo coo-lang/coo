@@ -118,6 +118,23 @@ Value* NMethodCall::codeGen(CodeGenContext& context) {
 	return call;
 }
 
+Value* NArrayIndex::codeGen(CodeGenContext& context) {
+	cout << "Creating Array index caculate: " << id.name << endl;
+
+	if (context.locals().find(id.name) == context.locals().end()) {
+		cerr << "undeclared variable " << id.name << endl;
+		return NULL;
+	}
+
+	auto ptr = Builder.CreateLoad(context.locals()[id.name]);
+
+	std::vector<Value*> indices;
+	indices.push_back(index.codeGen(context));
+	auto val = Builder.CreateInBoundsGEP(ptr, makeArrayRef(indices), "");
+
+	return Builder.CreateLoad(val, "");
+}
+
 Value* NUnaryOperator::codeGen(CodeGenContext& context) {
 	cout << "Creating unary operation " << op << endl;
 	Value* right = rightSide.codeGen(context);
@@ -331,7 +348,29 @@ Value* NRet::codeGen(CodeGenContext& context) {
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
-	AllocaInst *alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
+	AllocaInst *alloc;
+	if (arraySize > 0) {
+		Value* arraySizeValue = NInteger(arraySize).codeGen(context);
+		auto arrayType = ArrayType::get(typeOf(type), arraySize);
+		alloc = Builder.CreateAlloca(arrayType, arraySizeValue);
+
+		std::vector<Value*> values;
+		ExpressionList::const_iterator it;
+		for (it = arrayValue.begin(); it != arrayValue.end(); it++) {
+			// todo: check array element is legal type
+			values.push_back((**it).codeGen(context));
+		}
+
+
+		// context.locals()[id.name] = alloc;
+		// auto ptr = context.builder.CreateInBoundsGEP(varPtr, gep2_array, "elementPtr");
+		// auto ptr = context.builder.CreateInBoundsGEP(varPtr, gep2_array, "elementPtr");
+
+ 		// Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+	} else {
+		alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
+	}
+
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {
 		NAssignment assn(id, *assignmentExpr);
