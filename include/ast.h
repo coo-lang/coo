@@ -114,15 +114,6 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
-class NAssignment : public NExpression {
-public:
-	NIdentifier& leftSide;
-	NExpression& rightSide;
-	NAssignment(NIdentifier& leftSide, NExpression& rightSide) :
-		leftSide(leftSide), rightSide(rightSide) { }
-	virtual llvm::Value* codeGen(CodeGenContext& context);
-};
-
 class NIfStatement : public NStatement {
 public:
 	NExpression& condition;

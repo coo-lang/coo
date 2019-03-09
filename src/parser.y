@@ -33,7 +33,7 @@ void yyerror(const char *s);
 %token <token> TLPAREN TRPAREN TLBRACKET TRBRACKET TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
-%token <token> TVAR TDEF TIF TELSE TFOR TRET TARRAY
+%token <token> TVAR TDEF TIF TELSE TFOR TRET
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
@@ -133,7 +133,7 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| string
 	;
 
-ret_stmt: TRET expr	{printf("ret expr"); $$ = new NRet(*$2); }
+ret_stmt: TRET expr	{ $$ = new NRet(*$2); }
 		;
 
 call_args: /* Blank! */ { $$ = new ExpressionList(); }
