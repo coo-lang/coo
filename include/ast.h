@@ -157,16 +157,16 @@ public:
 
 class NVariableDeclaration : public NStatement {
 public:
-	const NIdentifier& type;
+	NIdentifier& type;
 	NIdentifier& id;
 	NExpression *assignmentExpr;
 	int arraySize;
 	ExpressionList arrayValue;
-	NVariableDeclaration(const NIdentifier& type, NIdentifier& id) : type(type), id(id), arraySize(0) { }
-	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int arraySize) : type(type), id(id), arraySize(arraySize) { }
-	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int arraySize, ExpressionList arrayValue)
+	NVariableDeclaration(NIdentifier& type, NIdentifier& id) : type(type), id(id), arraySize(0) { }
+	NVariableDeclaration(NIdentifier& type, NIdentifier& id, int arraySize) : type(type), id(id), arraySize(arraySize) { }
+	NVariableDeclaration(NIdentifier& type, NIdentifier& id, int arraySize, ExpressionList arrayValue)
 		: type(type), id(id), arraySize(arraySize), arrayValue(arrayValue) { }
-	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
+	NVariableDeclaration(NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
 		type(type), id(id), assignmentExpr(assignmentExpr), arraySize(0) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };

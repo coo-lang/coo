@@ -39,7 +39,7 @@ void yyerror(const char *s);
 %type <ident> ident
 %type <expr> numeric boolean string expr
 %type <varvec> func_decl_args
-%type <exprvec> call_args
+%type <exprvec> call_args array
 %type <block> program stmts block
 %type <stmt> stmt var_decl func_decl_arg func_decl if_stmt for_stmt ret_stmt
 %type <token> comparison
@@ -76,8 +76,9 @@ block: TLBRACE stmts TRBRACE { $$ = $2; }
 
 var_decl: TVAR ident TCOLON ident { $$ = new NVariableDeclaration(*$4, *$2); }
 		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str())); }
-		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident TEQUAL TLBRACE call_args TRBRACE { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str()), *$10); delete $10; }
+		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident TEQUAL array { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str()), *$9); }
 		| TVAR ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$4, *$2, $6); }
+		| TVAR ident TEQUAL expr { auto type = new NIdentifier(""); $$ = new NVariableDeclaration(*type, *$2, $4); }
 		;
 
 func_decl: TDEF ident TLPAREN func_decl_args TRPAREN TCOLON ident block
@@ -115,6 +116,9 @@ boolean: TBOOLLIT {$$ = new NBoolean($1->c_str()[0] == 't'); delete $1; }
 	;
 
 string: TSTRINGLIT {$$ = new NString(*$1); delete $1; }
+	;
+
+array: TLBRACE call_args TRBRACE { $$ = $2; }
 	;
 
 expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }

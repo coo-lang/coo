@@ -49,7 +49,7 @@ GenericValue CodeGenContext::runCode() {
 }
 
 /* Returns a LLVM type based on the identifier */
-static Type *typeOf(const NIdentifier type) {
+static Type *typeOf(NIdentifier type) {
 	if (type.name.compare("int") == 0) {
 		return Type::getInt32Ty(TheContext);
 	} else if (type.name.compare("long") == 0) {
@@ -61,6 +61,7 @@ static Type *typeOf(const NIdentifier type) {
 	} else if (type.name.compare("bool") == 0) {
 		return Type::getInt1Ty(TheContext);
 	}
+
 	return Type::getVoidTy(TheContext);
 }
 
@@ -268,13 +269,14 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		return NULL;
 	}
 
+	Value* val = rightSide.codeGen(context);
 	if (leftSide.index && context.locals()[leftSide.name]->getType()->isPtrOrPtrVectorTy()) {
-		return Builder.CreateStore(rightSide.codeGen(context), getArrayIndex(context.locals()[leftSide.name], leftSide.index->codeGen(context)), false);
+		return Builder.CreateStore(val, getArrayIndex(context.locals()[leftSide.name], leftSide.index->codeGen(context)), false);
 	} else {
-		return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+		return Builder.CreateStore(val, context.locals()[leftSide.name], false);
 	}
 
-	return NULL;
+	return val;
 }
 
 Value* NIfStatement::codeGen(CodeGenContext& context) {
@@ -374,15 +376,32 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 
 			Builder.CreateStore((*arrayValue[i]).codeGen(context), idx);
 		}
+
+
 	} else {
+		Value* val = nullptr;
+		if (assignmentExpr == NULL) {
+			if (type.name == "") {
+				ast_error("cannot define variable without type declaration");
+				return NULL;
+			}
+		} else {
+			val = assignmentExpr->codeGen(context);
+			auto inferringType = typeInferring(val);
+			if (type.name != "" && type.name != inferringType.name) {
+				ast_error("cannot cast " + inferringType.name + " to " + type.name + " !");
+				return NULL;
+			}
+			type = inferringType;
+		}
+
 		alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
+
+		if (val)
+			Builder.CreateStore(val, alloc, false);
 	}
 
 	context.locals()[id.name] = alloc;
-	if (assignmentExpr != NULL) {
-		NAssignment assn(id, *assignmentExpr);
-		assn.codeGen(context);
-	}
 	return alloc;
 }
 
