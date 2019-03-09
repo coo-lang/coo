@@ -1,0 +1,12 @@
+var a = 13234
+print("a is int variable %d", a)
+var b = a + 1
+var d = b - 2
+print("b is a + 1: %d, d is b - 2: %d", b, d)
+
+var a = 1234125215151L
+print("a is long variable %ld", a)
+var a = 2314.34
+print("a is float variable %f", a)
+var a = "dsfadfsafl"
+print("a is string variable %s", a)
