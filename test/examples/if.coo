@@ -1,11 +1,7 @@
-var x: int = 1
-if x > 0 {
-    print("positive number")
-    x = x + 1
-} else {
-    print("negative number")
-    x = x - 1
+var i: int = 1
+if i > 0 {
+    print("i is positive number~")
 }
-print("if over")
-var y: int = x
-print("y is %d", y)
+if (i < 0) == false {
+    print("i is not negative number!")
+}

@@ -62,7 +62,9 @@ public:
 class NIdentifier : public NExpression {
 public:
 	std::string name;
+	NExpression* index;
 	NIdentifier(const std::string& name) : name(name) { }
+	NIdentifier(const std::string& name, NExpression* index) : name(name), index(index) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
@@ -73,6 +75,15 @@ public:
 	NMethodCall(const NIdentifier& id, ExpressionList& arguments) :
 		id(id), arguments(arguments) { }
 	NMethodCall(const NIdentifier& id) : id(id) { }
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+class NArrayIndex : public NExpression {
+public:
+	const NIdentifier& id;
+	NExpression& index;
+	NArrayIndex(const NIdentifier& id, NExpression& index) :
+		id(id), index(index) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
@@ -103,15 +114,6 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
-class NAssignment : public NExpression {
-public:
-	const NIdentifier& leftSide;
-	NExpression& rightSide;
-	NAssignment(const NIdentifier& leftSide, NExpression& rightSide) :
-		leftSide(leftSide), rightSide(rightSide) { }
-	virtual llvm::Value* codeGen(CodeGenContext& context);
-};
-
 class NIfStatement : public NStatement {
 public:
 	NExpression& condition;
@@ -126,12 +128,16 @@ public:
 
 class NForStatement : public NStatement {
 public:
-	NExpression& start;
-	NExpression& end;
-	NExpression& step;
+	NExpression* start;
+	NExpression* end;
+	NExpression* step;
 	NBlock block;
-	NForStatement(NExpression& start, NExpression& end, NExpression& step, NBlock block) :
+	NForStatement(NExpression* start, NExpression* end, NExpression* step, NBlock block) :
 		start(start), end(end), step(step), block(block) {}
+	NForStatement(NExpression* end, NExpression* step, NBlock block) :
+		end(end), step(step), block(block) {}
+	NForStatement(NExpression* end, NBlock block) :
+		end(end), block(block) {}
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
@@ -154,9 +160,14 @@ public:
 	const NIdentifier& type;
 	NIdentifier& id;
 	NExpression *assignmentExpr;
-	NVariableDeclaration(const NIdentifier& type, NIdentifier& id) : type(type), id(id) { }
+	int arraySize;
+	ExpressionList arrayValue;
+	NVariableDeclaration(const NIdentifier& type, NIdentifier& id) : type(type), id(id), arraySize(0) { }
+	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int arraySize) : type(type), id(id), arraySize(arraySize) { }
+	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int arraySize, ExpressionList arrayValue)
+		: type(type), id(id), arraySize(arraySize), arrayValue(arrayValue) { }
 	NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
-		type(type), id(id), assignmentExpr(assignmentExpr) { }
+		type(type), id(id), assignmentExpr(assignmentExpr), arraySize(0) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 

@@ -30,7 +30,7 @@ void yyerror(const char *s);
 
 %token <string> TIDENTIFIER TINTEGERLIT TDOUBLELIT TLONGLIT TBOOLLIT TSTRINGLIT
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
-%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
+%token <token> TLPAREN TRPAREN TLBRACKET TRBRACKET TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
 %token <token> TVAR TDEF TIF TELSE TFOR TRET
@@ -75,6 +75,8 @@ block: TLBRACE stmts TRBRACE { $$ = $2; }
 	;
 
 var_decl: TVAR ident TCOLON ident { $$ = new NVariableDeclaration(*$4, *$2); }
+		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str())); }
+		| TVAR ident TCOLON TLBRACKET TINTEGERLIT TRBRACKET ident TEQUAL TLBRACE call_args TRBRACE { $$ = new NVariableDeclaration(*$7, *$2, atoi($5->c_str()), *$10); delete $10; }
 		| TVAR ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$4, *$2, $6); }
 		;
 
@@ -91,14 +93,17 @@ func_decl_args: /* Blank! */ {$$ = new VariableList(); }
 			| func_decl_args TCOMMA func_decl_arg { $1->push_back($<var_decl>3); }
 			;
 
-if_stmt: TIF expr block	{printf("parsing if block\n"); $$ = new NIfStatement(*$2, *$3); }
-	| TIF expr block TELSE block {printf("parsing if else block\n"); $$ = new NIfStatement(*$2, *$3, *$5); }
+if_stmt: TIF expr block	{ $$ = new NIfStatement(*$2, *$3); }
+	| TIF expr block TELSE block { $$ = new NIfStatement(*$2, *$3, *$5); }
 	;
 
-for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {printf("parsing for block\n"); $$ = new NForStatement(*$2, *$4, *$6, *$7); }
+for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, $6, *$7); }
+	| TFOR expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, *$5); }
+	| TFOR expr block {$$ = new NForStatement($2, *$3); }
 	;
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
+	| TIDENTIFIER TLBRACKET expr TRBRACKET { $$ = new NIdentifier(*$1, $3); delete $1; }
 	;
 
 numeric: TINTEGERLIT { $$ = new NInteger(atoi($1->c_str())); delete $1; }
@@ -114,6 +119,7 @@ string: TSTRINGLIT {$$ = new NString(*$1); delete $1; }
 
 expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| ident TLPAREN call_args TRPAREN { $$ = new NMethodCall(*$1, *$3); delete $3; }
+
 	| expr TPLUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TMINUS expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
 	| expr TMUL expr { $$ = new NBinaryOperator(*$1, $2, *$3); }
@@ -127,7 +133,7 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| string
 	;
 
-ret_stmt: TRET expr	{printf("ret expr"); $$ = new NRet(*$2); }
+ret_stmt: TRET expr	{ $$ = new NRet(*$2); }
 		;
 
 call_args: /* Blank! */ { $$ = new ExpressionList(); }

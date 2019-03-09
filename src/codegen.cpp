@@ -64,6 +64,20 @@ static Type *typeOf(const NIdentifier type) {
 	return Type::getVoidTy(TheContext);
 }
 
+static Value *getArrayIndex(Value* array,  Value* index) {
+	std::vector<Value*> indices;
+
+	cout << "array type is: " << getTypeString(array) << endl;
+	if (getTypeString(array) != "i8**") {
+		indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 0, false));
+	} else {
+		array = Builder.CreateLoad(array);
+	}
+	indices.push_back(index);
+
+	return Builder.CreateInBoundsGEP(array, makeArrayRef(indices), "");
+}
+
 /* Code Generation */
 Value* NInteger::codeGen(CodeGenContext& context) {
 	cout << "Creating Integer: " << value << endl;
@@ -96,6 +110,11 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << name << endl;
 		return NULL;
 	}
+
+	if (index != NULL) {
+		return Builder.CreateLoad(getArrayIndex(context.locals()[name], index->codeGen(context)), "");
+	}
+
 	return Builder.CreateLoad(context.locals()[name], "");
 }
 
@@ -157,66 +176,66 @@ Value* NBinaryOperator::codeGen(CodeGenContext& context) {
 				return Builder.CreateAdd(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFAdd(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TMINUS:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateSub(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFSub(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TMUL:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateMul(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFMul(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TDIV:
 			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
 				return Builder.CreateSDiv(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFDiv(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCEQ:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpEQ(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOEQ(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCNE:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpNE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpONE(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCLT:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSLT(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOLT(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCLE:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSLE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOLE(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCGT:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSGT(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGT(left, right);
-			ast_error("unsupport calculate for" + getTypeString(left));
+			ast_error("unsupport calculate for " + getTypeString(left));
 			break;
 		case TCGE:
-			if (getTypeString(left) == "i32" || getTypeString(left) == "i64")
+			if (getTypeString(left) == "i32" || getTypeString(left) == "i64" || getTypeString(left) == "i1")
 				return Builder.CreateICmpSGE(left, right);
 			if (getTypeString(left) == "double")
 				return Builder.CreateFCmpOGE(left, right);
@@ -248,7 +267,14 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << leftSide.name << endl;
 		return NULL;
 	}
-	return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+
+	if (leftSide.index && context.locals()[leftSide.name]->getType()->isPtrOrPtrVectorTy()) {
+		return Builder.CreateStore(rightSide.codeGen(context), getArrayIndex(context.locals()[leftSide.name], leftSide.index->codeGen(context)), false);
+	} else {
+		return Builder.CreateStore(rightSide.codeGen(context), context.locals()[leftSide.name], false);
+	}
+
+	return NULL;
 }
 
 Value* NIfStatement::codeGen(CodeGenContext& context) {
@@ -285,27 +311,31 @@ Value* NForStatement::codeGen(CodeGenContext& context) {
 	cout << "Generating for statement" << endl;
 
 	// start
-	start.codeGen(context);
+	if (start)
+		start->codeGen(context);
 
-	// body and step
+	// body and after block
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
-	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
-	Builder.CreateBr(LoopBB);
+	BasicBlock *endCondBB = BasicBlock::Create(TheContext, "endcondBB", TheFunction);
+	BasicBlock *LoopBB = BasicBlock::Create(TheContext, "loopBB", TheFunction);
+	BasicBlock *AfterBB = BasicBlock::Create(TheContext, "afterloopBB", TheFunction);
+
+	Builder.CreateBr(endCondBB);
+	// endcond and conditional br
+	Builder.SetInsertPoint(endCondBB);
+	Value* endCond = end->codeGen(context);
+	endCond = Builder.CreateICmpNE(endCond,
+		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "endcond");
+	Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+
+	// body and step generate
 	Builder.SetInsertPoint(LoopBB);
 	block.codeGen(context);
-	step.codeGen(context);
+	if (step)
+		step->codeGen(context);
+	Builder.CreateBr(endCondBB);
 
-	// endcond
-	Value* endCond = end.codeGen(context);
-	endCond = Builder.CreateICmpNE(endCond,
-		ConstantInt::get(Type::getInt1Ty(TheContext), 0, true), "loopcond");
-
-	// after
-	BasicBlock *AfterBB =
-      	BasicBlock::Create(TheContext, "afterloop", TheFunction);
-
-	// br
-	Builder.CreateCondBr(endCond, LoopBB, AfterBB);
+	// after loop
 	Builder.SetInsertPoint(AfterBB);
 
 	return NULL;
@@ -327,7 +357,27 @@ Value* NRet::codeGen(CodeGenContext& context) {
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
-	AllocaInst *alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
+	AllocaInst *alloc;
+	if (arraySize > 0) {
+		Value* arraySizeValue = NInteger(arraySize).codeGen(context);
+		auto arrayType = ArrayType::get(typeOf(type), arraySize);
+		alloc = Builder.CreateAlloca(arrayType, arraySizeValue);
+
+		// array value initializing
+		std::vector<Value*> values;
+		ExpressionList::const_iterator it;
+		for (int i = 0; i < arrayValue.size(); i++) {
+			std::vector<Value*> indices;
+			indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 0, true));
+			indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), i, true));
+			auto idx = Builder.CreateInBoundsGEP(alloc, makeArrayRef(indices), "");
+
+			Builder.CreateStore((*arrayValue[i]).codeGen(context), idx);
+		}
+	} else {
+		alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
+	}
+
 	context.locals()[id.name] = alloc;
 	if (assignmentExpr != NULL) {
 		NAssignment assn(id, *assignmentExpr);
