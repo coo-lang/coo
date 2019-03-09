@@ -19,8 +19,8 @@ void CodeGenContext::generateCode(NBlock& root) {
 	/* Push a new variable/block context */
 	Builder.SetInsertPoint(bblock);
 	pushBlock(bblock);
+	currentBlock()->returnValue = Builder.CreateAlloca(Type::getInt32Ty(TheContext), 0, NULL, "");
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
-	// Builder.CreateRetVoid();
 	Builder.CreateRet(ConstantInt::get(Type::getInt32Ty(TheContext), 0, true));
 	popBlock();
 
@@ -396,7 +396,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 			type = inferringType;
 		}
 
-		alloc = Builder.CreateAlloca(typeOf(type), 0, NULL, id.name.c_str());
+		alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
 
 		if (val)
 			Builder.CreateStore(val, alloc, false);
