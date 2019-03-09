@@ -1,0 +1,4 @@
+var a:int = 1
+print("int variable a is %d", a)
+var a:string = "abc"
+print("string variable a is %s", a)
