@@ -78,15 +78,6 @@ public:
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
-class NArrayIndex : public NExpression {
-public:
-	const NIdentifier& id;
-	NExpression& index;
-	NArrayIndex(const NIdentifier& id, NExpression& index) :
-		id(id), index(index) { }
-	virtual llvm::Value* codeGen(CodeGenContext& context);
-};
-
 class NUnaryOperator : public NExpression {
 public:
 	int op;
@@ -111,6 +102,15 @@ public:
 	StatementList statements;
 	NBlock() { }
 	NBlock(StatementList& statements) : statements(statements) { }
+	virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
+class NAssignment : public NExpression {
+public:
+	NIdentifier& leftSide;
+	NExpression& rightSide;
+	NAssignment(NIdentifier& leftSide, NExpression& rightSide) :
+		leftSide(leftSide), rightSide(rightSide) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
