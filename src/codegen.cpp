@@ -18,7 +18,7 @@ void CodeGenContext::generateCode(NBlock& root) {
 
 	/* Push a new variable/block context */
 	Builder.SetInsertPoint(bblock);
-	pushBlock(bblock);	// todo: need remove stack data structure
+	pushBlock(bblock);
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
 	// Builder.CreateRetVoid();
 	Builder.CreateRet(ConstantInt::get(Type::getInt32Ty(TheContext), 0, true));
@@ -275,8 +275,6 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 	} else {
 		return Builder.CreateStore(val, context.locals()[leftSide.name], false);
 	}
-
-	return val;
 }
 
 Value* NIfStatement::codeGen(CodeGenContext& context) {
@@ -315,6 +313,8 @@ Value* NForStatement::codeGen(CodeGenContext& context) {
 	// start
 	if (start)
 		start->codeGen(context);
+	if (varDecl)
+		varDecl->codeGen(context);
 
 	// body and after block
 	Function *TheFunction = Builder.GetInsertBlock()->getParent();
@@ -387,6 +387,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 			}
 		} else {
 			val = assignmentExpr->codeGen(context);
+			// type inferring
 			auto inferringType = typeInferring(val);
 			if (type.name != "" && type.name != inferringType.name) {
 				ast_error("cannot cast " + inferringType.name + " to " + type.name + " !");

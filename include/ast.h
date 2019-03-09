@@ -128,10 +128,13 @@ public:
 
 class NForStatement : public NStatement {
 public:
+	NStatement* varDecl;
 	NExpression* start;
 	NExpression* end;
 	NExpression* step;
 	NBlock block;
+	NForStatement(NStatement* varDecl, NExpression* end, NExpression* step, NBlock block) :
+		varDecl(varDecl), end(end), step(step), block(block) {}
 	NForStatement(NExpression* start, NExpression* end, NExpression* step, NBlock block) :
 		start(start), end(end), step(step), block(block) {}
 	NForStatement(NExpression* end, NExpression* step, NBlock block) :

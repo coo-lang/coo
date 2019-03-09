@@ -99,6 +99,7 @@ if_stmt: TIF expr block	{ $$ = new NIfStatement(*$2, *$3); }
 	;
 
 for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, $6, *$7); }
+	| TFOR var_decl TSEMICOLON expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, $6, *$7); }
 	| TFOR expr TSEMICOLON expr block {$$ = new NForStatement($2, $4, *$5); }
 	| TFOR expr block {$$ = new NForStatement($2, *$3); }
 	;
