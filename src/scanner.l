@@ -27,7 +27,7 @@ STRING_END ("\"")
 
 %%
 
-{WHITESPACE}			                  ;
+{WHITESPACE}                        ;
 [\n]                                {cur_line++; }
 
 {SINGLE_COMMENT}                    ;
@@ -77,7 +77,7 @@ STRING_END ("\"")
 "["           return TOKEN(TLBRACKET);
 "]"           return TOKEN(TRBRACKET);
 "{"           return TOKEN(TLBRACE);
-"}"						return TOKEN(TRBRACE);
+"}"           return TOKEN(TRBRACE);
 "."           return TOKEN(TDOT);
 ","           return TOKEN(TCOMMA);
 "+"           return TOKEN(TPLUS);
@@ -87,7 +87,7 @@ STRING_END ("\"")
 
 <<EOF>>       return 0;
 
-.						  unrecognized_char(yytext[0]);
+.             unrecognized_char(yytext[0]);
 
 %%
 
