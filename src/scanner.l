@@ -27,8 +27,8 @@ STRING_END ("\"")
 
 %%
 
-{WHITESPACE}			;
-[\n]                    {cur_line++; }
+{WHITESPACE}			                  ;
+[\n]                                {cur_line++; }
 
 {SINGLE_COMMENT}                    ;
 {MULTIPLE_COMMENT_BEGIN}            BEGIN(MULTIPLE_COMMENT);
@@ -49,9 +49,9 @@ STRING_END ("\"")
 "for"                       return TOKEN(TFOR);
 "ret"                       return TOKEN(TRET);
 
-[a-zA-Z_][a-zA-Z0-9_]*	    SAVE_TOKEN; return TIDENTIFIER;
-[0-9]+(\.[0-9]*[fF]?|[fF])	SAVE_TOKEN; return TDOUBLELIT;
-[0-9]+					            SAVE_TOKEN; return TINTEGERLIT;
+[a-zA-Z_][a-zA-Z0-9_]*      SAVE_TOKEN; return TIDENTIFIER;
+[0-9]+(\.[0-9]*[fF]?|[fF])  SAVE_TOKEN; return TDOUBLELIT;
+[0-9]+                      SAVE_TOKEN; return TINTEGERLIT;
 [0-9]+[lL]                  SAVE_TOKEN; return TLONGLIT;
 
 {STRING_BEGIN}              BEGIN(SINGLE_STRING);
@@ -63,27 +63,27 @@ STRING_END ("\"")
   .                         unrecognized_char(yytext[0]);
 }
 
-"="						return TOKEN(TEQUAL);
-"=="					return TOKEN(TCEQ);
-"!="					return TOKEN(TCNE);
-"<"						return TOKEN(TCLT);
-"<="					return TOKEN(TCLE);
-">"						return TOKEN(TCGT);
-">="					return TOKEN(TCGE);
+"="           return TOKEN(TEQUAL);
+"=="          return TOKEN(TCEQ);
+"!="          return TOKEN(TCNE);
+"<"           return TOKEN(TCLT);
+"<="          return TOKEN(TCLE);
+">"           return TOKEN(TCGT);
+">="          return TOKEN(TCGE);
 ":"           return TOKEN(TCOLON);
 ";"           return TOKEN(TSEMICOLON);
-"("						return TOKEN(TLPAREN);
-")"						return TOKEN(TRPAREN);
+"("           return TOKEN(TLPAREN);
+")"           return TOKEN(TRPAREN);
 "["           return TOKEN(TLBRACKET);
 "]"           return TOKEN(TRBRACKET);
-"{"						return TOKEN(TLBRACE);
+"{"           return TOKEN(TLBRACE);
 "}"						return TOKEN(TRBRACE);
-"."						return TOKEN(TDOT);
-","						return TOKEN(TCOMMA);
-"+"						return TOKEN(TPLUS);
-"-"						return TOKEN(TMINUS);
-"*"						return TOKEN(TMUL);
-"/"						return TOKEN(TDIV);
+"."           return TOKEN(TDOT);
+","           return TOKEN(TCOMMA);
+"+"           return TOKEN(TPLUS);
+"-"           return TOKEN(TMINUS);
+"*"           return TOKEN(TMUL);
+"/"           return TOKEN(TDIV);
 
 <<EOF>>       return 0;
 
