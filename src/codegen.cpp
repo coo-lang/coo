@@ -15,12 +15,18 @@ void CodeGenContext::generateCode(NBlock& root) {
 	FunctionType *ftype = FunctionType::get(Type::getInt32Ty(TheContext), makeArrayRef(argTypes), false);
 	mainFunction = Function::Create(ftype, GlobalValue::ExternalLinkage, "main", module);
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", mainFunction, 0);
+	BasicBlock *retblock = BasicBlock::Create(TheContext, "retBlock", mainFunction, 0);
 
 	/* Push a new variable/block context */
 	Builder.SetInsertPoint(bblock);
 	pushBlock(bblock);
+	currentBlock()->returnBlock = retblock;
 	currentBlock()->returnValue = Builder.CreateAlloca(Type::getInt32Ty(TheContext), 0, NULL, "");
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
+
+	// ret part
+	Builder.CreateBr(retblock);
+	Builder.SetInsertPoint(retblock);
 	Builder.CreateRet(ConstantInt::get(Type::getInt32Ty(TheContext), 0, true));
 	popBlock();
 
@@ -256,7 +262,11 @@ Value* NBlock::codeGen(CodeGenContext& context) {
 		cout << "Generating code for ===== " << typeid(**it).name() << endl;
 		last = (**it).codeGen(context);
 		// break block generating if ret statement
-		if (typeid(**it).name() == "4NRet") break;
+		if (typeid(**it).name() == "4NRet")  {
+			cout << "**************************" << endl;
+			Builder.CreateBr(context.currentBlock()->returnBlock);
+			break;
+		}
 	}
 	cout << "Creating block" << endl;
 	return last;
@@ -292,13 +302,19 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	// Emit then value.
 	Builder.SetInsertPoint(ThenBB);
 	thenBlock.codeGen(context);
-	Builder.CreateBr(MergeBB);
+	// Builder.CreateBr(MergeBB);
+	if (Builder.GetInsertBlock()->getTerminator() == NULL) {
+		Builder.CreateBr(MergeBB);
+	}
 	// ThenBB = Builder.GetInsertBlock();
 
 	// Emit else block.
 	Builder.SetInsertPoint(ElseBB);
 	elseBlock.codeGen(context);
-	Builder.CreateBr(MergeBB);
+	// Builder.CreateBr(MergeBB);
+	if (Builder.GetInsertBlock()->getTerminator() == NULL) {
+		Builder.CreateBr(MergeBB);Builder.CreateBr(MergeBB);
+	}
 	// ElseBB = Builder.GetInsertBlock();
 
 	// Emit merge block.
@@ -416,12 +432,13 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	FunctionType *ftype = FunctionType::get(typeOf(type), makeArrayRef(argTypes), false);
 	Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function);
+	BasicBlock *retblock = BasicBlock::Create(TheContext, "retBlock", function);
 
 	// store context before function
 	auto *originBlock = Builder.GetInsertBlock();
 	Builder.SetInsertPoint(bblock);
 	context.pushBlock(bblock);
-
+	context.currentBlock()->returnBlock = retblock;
 	// return value initialize
 	context.currentBlock()->returnValue = Builder.CreateAlloca(typeOf(type), 0, NULL, "");
 
@@ -438,6 +455,8 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	block.codeGen(context);
 
 	// return value
+	Builder.CreateBr(retblock);
+	Builder.SetInsertPoint(retblock);
 	Builder.CreateRet(Builder.CreateLoad(context.currentBlock()->returnValue));
 
 	// restore context after function
