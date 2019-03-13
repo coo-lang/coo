@@ -1,0 +1,9 @@
+def foo(a: []int): void {
+    a[0] = 2
+}
+
+var a: [2]int = {1, 3}
+foo(a)
+a[1] = a[0]
+print("a[0] is %d, a[1] is %d", a[1], a[1])
+

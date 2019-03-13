@@ -87,6 +87,7 @@ func_decl: TDEF ident TLPAREN func_decl_args TRPAREN TCOLON ident block
 
 func_decl_arg: ident TCOLON ident { $$ = new NVariableDeclaration(*$3, *$1); }
 			| ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$3, *$1, $5); }
+			| ident TCOLON TLBRACKET TRBRACKET ident { (*$5).name =  "[]" + (*$5).name; $$ = new NVariableDeclaration(*$5, *$1); }
 			;
 
 func_decl_args: /* Blank! */ {$$ = new VariableList(); }
