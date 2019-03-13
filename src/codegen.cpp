@@ -15,12 +15,18 @@ void CodeGenContext::generateCode(NBlock& root) {
 	FunctionType *ftype = FunctionType::get(Type::getInt32Ty(TheContext), makeArrayRef(argTypes), false);
 	mainFunction = Function::Create(ftype, GlobalValue::ExternalLinkage, "main", module);
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", mainFunction, 0);
+	BasicBlock *retblock = BasicBlock::Create(TheContext, "retBlock", mainFunction, 0);
 
 	/* Push a new variable/block context */
 	Builder.SetInsertPoint(bblock);
 	pushBlock(bblock);
+	currentBlock()->returnBlock = retblock;
 	currentBlock()->returnValue = Builder.CreateAlloca(Type::getInt32Ty(TheContext), 0, NULL, "");
 	root.codeGen(*this); /* Emit bytecode for toplevel block*/
+
+	// ret part
+	Builder.CreateBr(retblock);
+	Builder.SetInsertPoint(retblock);
 	Builder.CreateRet(ConstantInt::get(Type::getInt32Ty(TheContext), 0, true));
 	popBlock();
 
@@ -52,27 +58,39 @@ GenericValue CodeGenContext::runCode() {
 static Type *typeOf(NIdentifier type) {
 	if (type.name.compare("int") == 0) {
 		return Type::getInt32Ty(TheContext);
+	} else if (type.name.compare("[]int") == 0) {
+		return Type::getInt32PtrTy(TheContext);
 	} else if (type.name.compare("long") == 0) {
 		return Type::getInt64Ty(TheContext);
+	} else if (type.name.compare("[]long") == 0) {
+		return Type::getInt64PtrTy(TheContext);
 	} else if (type.name.compare("float") == 0) {
 		return Type::getDoubleTy(TheContext);
+	} else if (type.name.compare("[]float") == 0) {
+		return Type::getDoublePtrTy(TheContext);
 	} else if (type.name.compare("string") == 0) {
 		return Type::getInt8PtrTy(TheContext);
+	} else if (type.name.compare("[]string") == 0) {
+		return Type::getInt8PtrTy(TheContext)->getPointerTo();
 	} else if (type.name.compare("bool") == 0) {
 		return Type::getInt1Ty(TheContext);
+	} else if (type.name.compare("[]bool") == 0) {
+		return Type::getInt1PtrTy(TheContext);
+	} else if (type.name.compare("void") == 0) {
+		return Type::getVoidTy(TheContext);
 	}
 
 	return Type::getVoidTy(TheContext);
 }
 
-static Value *getArrayIndex(Value* array,  Value* index) {
+static Value* getArrayIndex(Value* array,  Value* index) {
 	std::vector<Value*> indices;
 
 	cout << "array type is: " << getTypeString(array) << endl;
-	if (getTypeString(array) != "i8**") {
-		indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 0, false));
-	} else {
+	if (ends_with(getTypeString(array), "**")) {
 		array = Builder.CreateLoad(array);
+	} else {
+		indices.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 0, false));
 	}
 	indices.push_back(index);
 
@@ -112,8 +130,11 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 		return NULL;
 	}
 
-	if (index != NULL) {
+	cout << getTypeString(context.locals()[name]) << endl;
+	if (index) {
 		return Builder.CreateLoad(getArrayIndex(context.locals()[name], index->codeGen(context)), "");
+	} else if (((AllocaInst *)context.locals()[name])->isArrayAllocation()) {
+		return getArrayIndex(context.locals()[name],  ConstantInt::get(Type::getInt64Ty(TheContext), 0, true));
 	}
 
 	return Builder.CreateLoad(context.locals()[name], "");
@@ -256,7 +277,10 @@ Value* NBlock::codeGen(CodeGenContext& context) {
 		cout << "Generating code for ===== " << typeid(**it).name() << endl;
 		last = (**it).codeGen(context);
 		// break block generating if ret statement
-		if (typeid(**it).name() == "4NRet") break;
+		if (typeid(**it).name() == "4NRet")  {
+			Builder.CreateBr(context.currentBlock()->returnBlock);
+			break;
+		}
 	}
 	cout << "Creating block" << endl;
 	return last;
@@ -292,13 +316,19 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	// Emit then value.
 	Builder.SetInsertPoint(ThenBB);
 	thenBlock.codeGen(context);
-	Builder.CreateBr(MergeBB);
+	// Builder.CreateBr(MergeBB);
+	if (Builder.GetInsertBlock()->getTerminator() == NULL) {
+		Builder.CreateBr(MergeBB);
+	}
 	// ThenBB = Builder.GetInsertBlock();
 
 	// Emit else block.
 	Builder.SetInsertPoint(ElseBB);
 	elseBlock.codeGen(context);
-	Builder.CreateBr(MergeBB);
+	// Builder.CreateBr(MergeBB);
+	if (Builder.GetInsertBlock()->getTerminator() == NULL) {
+		Builder.CreateBr(MergeBB);Builder.CreateBr(MergeBB);
+	}
 	// ElseBB = Builder.GetInsertBlock();
 
 	// Emit merge block.
@@ -363,7 +393,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	if (arraySize > 0) {
 		Value* arraySizeValue = NInteger(arraySize).codeGen(context);
 		auto arrayType = ArrayType::get(typeOf(type), arraySize);
-		alloc = Builder.CreateAlloca(arrayType, arraySizeValue);
+		alloc = Builder.CreateAlloca(arrayType, arraySizeValue, id.name.c_str());
 
 		// array value initializing
 		std::vector<Value*> values;
@@ -411,19 +441,23 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	std::vector<Type*> argTypes;
 	VariableList::const_iterator it;
 	for (it = arguments.begin(); it != arguments.end(); it++) {
+		cout << (**it).type.name << endl;
 		argTypes.push_back(typeOf((**it).type));
 	}
 	FunctionType *ftype = FunctionType::get(typeOf(type), makeArrayRef(argTypes), false);
 	Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function);
+	BasicBlock *retblock = BasicBlock::Create(TheContext, "retBlock", function);
 
 	// store context before function
 	auto *originBlock = Builder.GetInsertBlock();
 	Builder.SetInsertPoint(bblock);
 	context.pushBlock(bblock);
-
+	context.currentBlock()->returnBlock = retblock;
 	// return value initialize
-	context.currentBlock()->returnValue = Builder.CreateAlloca(typeOf(type), 0, NULL, "");
+	if (typeOf(type)->isVoidTy() == false) {
+		context.currentBlock()->returnValue = Builder.CreateAlloca(typeOf(type), 0, NULL, "");
+	}
 
 	// arguments initialize
 	it = arguments.begin();
@@ -438,7 +472,13 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	block.codeGen(context);
 
 	// return value
-	Builder.CreateRet(Builder.CreateLoad(context.currentBlock()->returnValue));
+	Builder.CreateBr(retblock);
+	Builder.SetInsertPoint(retblock);
+	if (typeOf(type)->isVoidTy()) {
+		Builder.CreateRetVoid();
+	} else {
+		Builder.CreateRet(Builder.CreateLoad(context.currentBlock()->returnValue));
+	}
 
 	// restore context after function
 	context.popBlock();

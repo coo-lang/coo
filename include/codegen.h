@@ -43,6 +43,7 @@ static IRBuilder<> Builder(TheContext);
 class CodeGenBlock {
 public:
 	BasicBlock *block;
+	BasicBlock *returnBlock;
 	Value* returnValue;
 	std::map<std::string, Value*> locals;
 };
