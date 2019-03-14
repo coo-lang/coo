@@ -80,6 +80,7 @@ STRING_END ("\"")
 "}"           return TOKEN(TRBRACE);
 "."           return TOKEN(TDOT);
 ","           return TOKEN(TCOMMA);
+"->"          return TOKEN(TFUNCTO);
 "+"           return TOKEN(TPLUS);
 "-"           return TOKEN(TMINUS);
 "*"           return TOKEN(TMUL);

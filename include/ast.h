@@ -7,10 +7,12 @@ class CodeGenContext;
 class NStatement;
 class NExpression;
 class NVariableDeclaration;
+class NIdentifier;
 
 typedef std::vector<NStatement*> StatementList;
 typedef std::vector<NExpression*> ExpressionList;
 typedef std::vector<NVariableDeclaration*> VariableList;
+typedef std::vector<NIdentifier*> IdentifierList;
 
 class Node {
 public:
@@ -165,12 +167,16 @@ public:
 	NExpression *assignmentExpr;
 	int arraySize;
 	ExpressionList arrayValue;
+	IdentifierList funcParams;
+	NIdentifier funcType = NIdentifier("void");
 	NVariableDeclaration(NIdentifier& type, NIdentifier& id) : type(type), id(id), arraySize(0) { }
 	NVariableDeclaration(NIdentifier& type, NIdentifier& id, int arraySize) : type(type), id(id), arraySize(arraySize) { }
 	NVariableDeclaration(NIdentifier& type, NIdentifier& id, int arraySize, ExpressionList arrayValue)
 		: type(type), id(id), arraySize(arraySize), arrayValue(arrayValue) { }
 	NVariableDeclaration(NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
 		type(type), id(id), assignmentExpr(assignmentExpr), arraySize(0) { }
+	NVariableDeclaration(NIdentifier& type, NIdentifier funcType, IdentifierList funcParams, NIdentifier& id) :
+		type(type), funcType(funcType), funcParams(funcParams), id(id), arraySize(0) { }
 	virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 

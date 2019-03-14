@@ -21,6 +21,7 @@ void yyerror(const char *s);
 	NIdentifier *ident;
 	NVariableDeclaration *var_decl;
 	std::vector<NVariableDeclaration*> *varvec;
+	std::vector<NIdentifier*> *identvec;
 	std::vector<NExpression*> *exprvec;
 	std::string *string;
 	int token;
@@ -30,7 +31,7 @@ void yyerror(const char *s);
 
 %token <string> TIDENTIFIER TINTEGERLIT TDOUBLELIT TLONGLIT TBOOLLIT TSTRINGLIT
 %token <token> TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
-%token <token> TLPAREN TRPAREN TLBRACKET TRBRACKET TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON
+%token <token> TLPAREN TRPAREN TLBRACKET TRBRACKET TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON TFUNCTO
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
 %token <token> TVAR TDEF TIF TELSE TFOR TRET
@@ -40,6 +41,7 @@ void yyerror(const char *s);
 %type <expr> numeric boolean string expr
 %type <varvec> func_decl_args
 %type <exprvec> call_args array
+%type <identvec> func_decl_func_arg
 %type <block> program stmts block
 %type <stmt> stmt var_decl func_decl_arg func_decl if_stmt for_stmt ret_stmt
 %type <token> comparison
@@ -85,9 +87,16 @@ func_decl: TDEF ident TLPAREN func_decl_args TRPAREN TCOLON ident block
 			{ $$ = new NFunctionDeclaration(*$7, *$2, *$4, *$8); delete $4; }
 		;
 
+func_decl_func_arg:  { $$ = new IdentifierList(); }
+			| ident { $$ = new IdentifierList(); $$->push_back($<ident>1); }
+			| func_decl_func_arg TCOMMA ident { $1->push_back($<ident>3); }
+			;
+
 func_decl_arg: ident TCOLON ident { $$ = new NVariableDeclaration(*$3, *$1); }
-			| ident TCOLON ident TEQUAL expr { $$ = new NVariableDeclaration(*$3, *$1, $5); }
+			| ident TCOLON ident TEQUAL expr { /* default parameter */ $$ = new NVariableDeclaration(*$3, *$1, $5); }
 			| ident TCOLON TLBRACKET TRBRACKET ident { (*$5).name =  "[]" + (*$5).name; $$ = new NVariableDeclaration(*$5, *$1); }
+			| ident TCOLON TLPAREN func_decl_func_arg TRPAREN TFUNCTO ident
+					{ auto type = new NIdentifier("func"); $$ = new NVariableDeclaration(*type, *$7, *$4, *$1); }
 			;
 
 func_decl_args: /* Blank! */ {$$ = new VariableList(); }
