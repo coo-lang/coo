@@ -1,0 +1,11 @@
+def func(f: (int)->int): int {
+    ret f(1)
+}
+
+def foo(a: int): int {
+    ret 1
+}
+
+var result = func(foo)
+
+print("result is %d", result)

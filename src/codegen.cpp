@@ -83,6 +83,45 @@ static Type *typeOf(NIdentifier type) {
 	return Type::getVoidTy(TheContext);
 }
 
+static Type *typeOf(NIdentifier type, NIdentifier funcType, IdentifierList funcParams) {
+	if (type.name.compare("func") == 0) {
+		std::vector<Type*> argTypes;
+		for (auto it = funcParams.begin(); it != funcParams.end(); it++) {
+			cout << "function parameter argument: " << (**it).name << endl;
+			/* fix: recursion function type (need a scalable type system) */
+			argTypes.push_back(typeOf(**it));
+		}
+		FunctionType *ftype = FunctionType::get(typeOf(funcType), makeArrayRef(argTypes), false);
+		return ftype->getPointerTo();
+	}
+
+	if (type.name.compare("int") == 0) {
+		return Type::getInt32Ty(TheContext);
+	} else if (type.name.compare("[]int") == 0) {
+		return Type::getInt32PtrTy(TheContext);
+	} else if (type.name.compare("long") == 0) {
+		return Type::getInt64Ty(TheContext);
+	} else if (type.name.compare("[]long") == 0) {
+		return Type::getInt64PtrTy(TheContext);
+	} else if (type.name.compare("float") == 0) {
+		return Type::getDoubleTy(TheContext);
+	} else if (type.name.compare("[]float") == 0) {
+		return Type::getDoublePtrTy(TheContext);
+	} else if (type.name.compare("string") == 0) {
+		return Type::getInt8PtrTy(TheContext);
+	} else if (type.name.compare("[]string") == 0) {
+		return Type::getInt8PtrTy(TheContext)->getPointerTo();
+	} else if (type.name.compare("bool") == 0) {
+		return Type::getInt1Ty(TheContext);
+	} else if (type.name.compare("[]bool") == 0) {
+		return Type::getInt1PtrTy(TheContext);
+	} else if (type.name.compare("void") == 0) {
+		return Type::getVoidTy(TheContext);
+	}
+
+	return Type::getVoidTy(TheContext);
+}
+
 static Value* getArrayIndex(Value* array,  Value* index) {
 	std::vector<Value*> indices;
 
@@ -130,11 +169,15 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 		return NULL;
 	}
 
-	cout << getTypeString(context.locals()[name]) << endl;
+	cout << "this identifier type: " << getTypeString(context.locals()[name]) << endl;
+	if (context.module->getFunction(name.c_str())) {
+		return context.locals()[name];
+	}
+
 	if (index) {
 		return Builder.CreateLoad(getArrayIndex(context.locals()[name], index->codeGen(context)), "");
 	} else if (((AllocaInst *)context.locals()[name])->isArrayAllocation()) {
-		return getArrayIndex(context.locals()[name],  ConstantInt::get(Type::getInt64Ty(TheContext), 0, true));
+		return getArrayIndex(context.locals()[name], ConstantInt::get(Type::getInt64Ty(TheContext), 0, true));
 	}
 
 	return Builder.CreateLoad(context.locals()[name], "");
@@ -143,8 +186,20 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 Value* NMethodCall::codeGen(CodeGenContext& context) {
 	Function *function = context.module->getFunction(id.name.c_str());
 	if (function == NULL) {
-		cerr << "no such function " << id.name << endl;
-		// return status error ??
+		if (context.locals().find(id.name) == context.locals().end()) {
+			cerr << "no such function " << id.name << endl;
+			return NULL;
+		}
+		Value* function1 = Builder.CreateLoad(context.locals()[id.name]);
+		std::vector<Value*> args;
+		ExpressionList::const_iterator it;
+		for (it = arguments.begin(); it != arguments.end(); it++) {
+			args.push_back((**it).codeGen(context));
+		}
+		/* Effectively call the method*/
+		CallInst *call = Builder.CreateCall(function1, makeArrayRef(args));
+		cout << "Creating method call: " << id.name << endl;
+		return call;
 	}
 	/* Execute expressions in arguments */
 	std::vector<Value*> args;
@@ -391,6 +446,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 
 	AllocaInst *alloc;
 	if (arraySize > 0) {
+		// array type
 		Value* arraySizeValue = NInteger(arraySize).codeGen(context);
 		auto arrayType = ArrayType::get(typeOf(type), arraySize);
 		alloc = Builder.CreateAlloca(arrayType, arraySizeValue, id.name.c_str());
@@ -406,30 +462,35 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 
 			Builder.CreateStore((*arrayValue[i]).codeGen(context), idx);
 		}
-
-
 	} else {
-		Value* val = nullptr;
-		if (assignmentExpr == NULL) {
-			if (type.name == "") {
-				ast_error("cannot define variable without type declaration");
-				return NULL;
-			}
+		if (type.name == "func") {
+			// function type
+			// Builder.CreateAlloca()
+			alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
 		} else {
-			val = assignmentExpr->codeGen(context);
-			// type inferring
-			auto inferringType = typeInferring(val);
-			if (type.name != "" && type.name != inferringType.name) {
-				ast_error("cannot cast " + inferringType.name + " to " + type.name + " !");
-				return NULL;
+			// primitive
+			Value* val = nullptr;
+			if (assignmentExpr == NULL) {
+				if (type.name == "") {
+					ast_error("cannot define variable without type declaration");
+					return NULL;
+				}
+			} else {
+				val = assignmentExpr->codeGen(context);
+				// type inferring
+				auto inferringType = typeInferring(val);
+				if (type.name != "" && type.name != inferringType.name) {
+					ast_error("cannot cast " + inferringType.name + " to " + type.name + " !");
+					return NULL;
+				}
+				type = inferringType;
 			}
-			type = inferringType;
+
+			alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
+
+			if (val)
+				Builder.CreateStore(val, alloc, false);
 		}
-
-		alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
-
-		if (val)
-			Builder.CreateStore(val, alloc, false);
 	}
 
 	context.locals()[id.name] = alloc;
@@ -441,11 +502,13 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	std::vector<Type*> argTypes;
 	VariableList::const_iterator it;
 	for (it = arguments.begin(); it != arguments.end(); it++) {
-		cout << (**it).type.name << endl;
-		argTypes.push_back(typeOf((**it).type));
+		cout << "function argument: " << (**it).type.name << endl;
+		argTypes.push_back(typeOf((**it).type, (**it).funcType, (**it).funcParams));
 	}
 	FunctionType *ftype = FunctionType::get(typeOf(type), makeArrayRef(argTypes), false);
 	Function *function = Function::Create(ftype, GlobalValue::ExternalLinkage, id.name.c_str(), context.module);
+	context.locals()[id.name] = function;
+
 	BasicBlock *bblock = BasicBlock::Create(TheContext, "entry", function);
 	BasicBlock *retblock = BasicBlock::Create(TheContext, "retBlock", function);
 
@@ -463,7 +526,7 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	it = arguments.begin();
 	auto *arg = function->args().begin();
 	for (; it != arguments.end() && arg != function->args().end(); it++, arg++) {
-		AllocaInst *alloc = Builder.CreateAlloca(typeOf((**it).type), 0, NULL, (**it).id.name.c_str());
+		AllocaInst *alloc = Builder.CreateAlloca(typeOf((**it).type, (**it).funcType, (**it).funcParams), 0, NULL, (**it).id.name.c_str());
 		context.locals()[(**it).id.name] = alloc;
 		Builder.CreateStore(arg, alloc);
 	}
@@ -472,7 +535,9 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	block.codeGen(context);
 
 	// return value
-	Builder.CreateBr(retblock);
+	if (Builder.GetInsertBlock()->getTerminator() == NULL) {
+		Builder.CreateBr(retblock);
+	}
 	Builder.SetInsertPoint(retblock);
 	if (typeOf(type)->isVoidTy()) {
 		Builder.CreateRetVoid();
