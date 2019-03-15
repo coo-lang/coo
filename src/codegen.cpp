@@ -352,10 +352,9 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 	}
 
 	Value* val = rightSide.codeGen(context);
-	// cout << "debug: " << getTypeString(val->getType()->getContainedType(1)) << endl;
-	// if (context.module->getFunction()) {
-	// 	return context.locals()[name];
-	// }
+	if (context.module->getFunction(val->getName())) {
+		return context.locals()[val->getName()];
+	}
 
 	if (leftSide.index && context.locals()[leftSide.name]->getType()->isPtrOrPtrVectorTy()) {
 		return Builder.CreateStore(val, getArrayIndex(context.locals()[leftSide.name], leftSide.index->codeGen(context)), false);
@@ -390,7 +389,7 @@ Value* NIfStatement::codeGen(CodeGenContext& context) {
 	elseBlock.codeGen(context);
 	// Builder.CreateBr(MergeBB);
 	if (Builder.GetInsertBlock()->getTerminator() == NULL) {
-		Builder.CreateBr(MergeBB);Builder.CreateBr(MergeBB);
+		Builder.CreateBr(MergeBB);
 	}
 	// ElseBB = Builder.GetInsertBlock();
 
@@ -453,6 +452,7 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
 	AllocaInst *alloc;
+	auto ty = typeOf(type);
 	if (arraySize > 0) {
 		// array type
 		Value* arraySizeValue = NInteger(arraySize).codeGen(context);
@@ -491,16 +491,15 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 			} else {
 				val = assignmentExpr->codeGen(context);
 				// type inferring
-				auto inferringType = typeInferring(val);
-				if (type.name != "" && type.name != inferringType.name) {
-					ast_error("cannot cast " + inferringType.name + " to " + type.name + " !");
+				if (type.name != "" && getTypeString(val) != getTypeString(ty)) {
+					ast_error("cannot cast " + getTypeString(val) + " to " + getTypeString(ty) + " !");
 					return NULL;
 				}
-				type = inferringType;
+				// /* todo: better solution but need time to refactor*/
+				ty = val->getType();
 			}
 
-			alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
-
+			alloc = new AllocaInst(ty, 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
 			if (val)
 				Builder.CreateStore(val, alloc, false);
 		}
@@ -531,7 +530,9 @@ Value* NFunctionDeclaration::codeGen(CodeGenContext& context) {
 	context.pushBlock(bblock);
 	context.currentBlock()->returnBlock = retblock;
 	// return value initialize
-	if (typeOf(type)->isVoidTy() == false) {
+	if (typeOf(type)->isVoidTy()) {
+		context.currentBlock()->returnValue = Builder.CreateAlloca(Type::getInt32Ty(TheContext), 0, NULL, "");
+	} else {
 		context.currentBlock()->returnValue = Builder.CreateAlloca(typeOf(type), 0, NULL, "");
 	}
 
