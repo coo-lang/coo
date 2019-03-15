@@ -1,0 +1,11 @@
+def func(f: (int)->int): int {
+    ret f(1)
+}
+
+var alias: func = (a: int): int -> {
+    ret 2
+}
+
+var result = func(alias)
+
+print("result is %d", result)

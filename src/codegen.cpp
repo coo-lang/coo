@@ -168,6 +168,9 @@ Value* NIdentifier::codeGen(CodeGenContext& context) {
 		cerr << "undeclared variable " << name << endl;
 		return NULL;
 	}
+	if (functionAlias.find(name) != functionAlias.end()) {
+		name = functionAlias[name];
+	}
 
 	cout << "this identifier type: " << getTypeString(context.locals()[name]) << endl;
 	if (context.module->getFunction(name.c_str())) {
@@ -349,6 +352,11 @@ Value* NAssignment::codeGen(CodeGenContext& context) {
 	}
 
 	Value* val = rightSide.codeGen(context);
+	// cout << "debug: " << getTypeString(val->getType()->getContainedType(1)) << endl;
+	// if (context.module->getFunction()) {
+	// 	return context.locals()[name];
+	// }
+
 	if (leftSide.index && context.locals()[leftSide.name]->getType()->isPtrOrPtrVectorTy()) {
 		return Builder.CreateStore(val, getArrayIndex(context.locals()[leftSide.name], leftSide.index->codeGen(context)), false);
 	} else {
@@ -465,8 +473,13 @@ Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
 	} else {
 		if (type.name == "func") {
 			// function type
-			// Builder.CreateAlloca()
-			alloc = new AllocaInst(typeOf(type), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
+			if (assignmentExpr == NULL) {
+				ast_error("right value should be declare explicitly if func");
+				return NULL;
+			}
+			Value* val = assignmentExpr->codeGen(context);
+			alloc = new AllocaInst(val->getType(), 0, id.name.c_str(), (Instruction *)context.currentBlock()->returnValue);
+ 			functionAlias[id.name] = val->getName().str();
 		} else {
 			// primitive
 			Value* val = nullptr;
