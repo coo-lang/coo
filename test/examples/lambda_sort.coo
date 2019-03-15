@@ -1,3 +1,4 @@
+// sort function with comparison function
 def sort(array: []int, n: int, cmp: (int, int)->bool) : void {
     for var i = 0; i < n; i = i + 1 {
         for var j = 0; j < n - 1 - i; j = j + 1 {
@@ -10,6 +11,7 @@ def sort(array: []int, n: int, cmp: (int, int)->bool) : void {
     }
 }
 
+// invoke sort() with lambda expression [O(n^2) bubble sort algorithm]
 var arr: [10]int = {8, 2, 1, 5, 6, 3, 4, 0, 9, 7}
 sort(arr, 10, (a: int, b: int): bool-> {
     if a <= b {
@@ -19,6 +21,7 @@ sort(arr, 10, (a: int, b: int): bool-> {
     }
 })
 
+// print sorted array
 for var i = 0; i < 10; i = i + 1 {
     print("%d", arr[i])
 }
