@@ -85,6 +85,8 @@ var_decl: TVAR ident TCOLON ident { $$ = new NVariableDeclaration(*$4, *$2); }
 
 func_decl: TDEF ident TLPAREN func_decl_args TRPAREN TCOLON ident block
 			{ $$ = new NFunctionDeclaration(*$7, *$2, *$4, *$8); delete $4; }
+		| TLPAREN func_decl_args TRPAREN TCOLON ident TFUNCTO block
+			{ auto id = new NIdentifier("anonymous"); $$ = new NFunctionDeclaration(*$5, *id, *$2, *$7); delete $2; }
 		;
 
 func_decl_func_arg:  { $$ = new IdentifierList(); }
@@ -145,6 +147,7 @@ expr: ident TEQUAL expr { $$ = new NAssignment(*$<ident>1, *$3); }
 	| numeric
 	| boolean
 	| string
+	| func_decl
 	;
 
 ret_stmt: TRET expr	{ $$ = new NRet(*$2); }

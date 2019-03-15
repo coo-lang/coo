@@ -39,6 +39,7 @@ using namespace llvm;
 class NBlock;
 static LLVMContext TheContext;
 static IRBuilder<> Builder(TheContext);
+static std::map<std::string, std::string> functionAlias;
 
 class CodeGenBlock {
 public:

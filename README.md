@@ -40,8 +40,7 @@ Here are samples program written in `Coo`:
         }
     }
 
-    var i: int
-    for i = 1; i <= 30; i = i + 1 {
+    for var i = 1; i <= 30; i = i + 1 {
         print("%d level fibonacci result is %d", i, fibonacci(i))
     }
     ```
@@ -49,26 +48,34 @@ Here are samples program written in `Coo`:
 - bubble_sort.coo
     ```coo
     /**
-    * declare a random array and using bubble sort to sort it.
+    * declare a random array and using bubble sort to sort it (using lambda expression).
     */
 
-    // initialize array
-    var n: int = 100
-    var arr: [100]int = {73,79,49,11,78,6,86,95,63,96,92,5,47,56,100,25,51,1,46,59,94,99,2,67,58,97,21,80,98,74,84,29,90,31,68,43,18,23,37,69,30,24,88,48,44,34,42,17,62,91,36,28,66,26,83,61,53,89,33,15,38,71,12,9,64,85,7,35,50,70,41,19,52,45,81,4,13,76,14,60,40,16,27,39,72,10,32,54,20,82,57,3,77,55,87,65,8,93,22,75}
-
-    // O(n^2) bubble sort algorithm
-    for var i = n - 1; i >= 0; i = i - 1 {
-        for var j = 0; j < i; j = j + 1 {
-            if arr[j] > arr[j + 1] {
-                var temp = arr[j]
-                arr[j] = arr[j + 1]
-                arr[j + 1] = temp
+    // sort function with comparison function
+    def sort(array: []int, n: int, cmp: (int, int)->bool) : void {
+        for var i = 0; i < n; i = i + 1 {
+            for var j = 0; j < n - 1 - i; j = j + 1 {
+                if cmp(array[j], array[j + 1]) == false {
+                    var temp = array[j]
+                    array[j] = array[j + 1]
+                    array[j + 1] = temp
+                }
             }
         }
     }
 
+    // invoke sort() with lambda expression [O(n^2) bubble sort algorithm]
+    var arr: [10]int = {8, 2, 1, 5, 6, 3, 4, 0, 9, 7}
+    sort(arr, 10, (a: int, b: int): bool-> {
+        if a <= b {
+            ret true
+        } else {
+            ret false
+        }
+    })
+
     // print sorted array
-    for i = 0; i < n; i = i + 1 {
+    for var i = 0; i < 10; i = i + 1 {
         print("%d", arr[i])
     }
     ```
