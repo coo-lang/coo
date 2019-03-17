@@ -24,11 +24,11 @@ There will be a `coo` executable compiler in root directory. You can compile a t
 $ ./test-cli test
 ```
 
-This command will run all test case in `test/`.
+This command will run all test cases in `test/`.
 
 ## Example
 
-Here are samples program written in `Coo`:
+Here are sample programs written in `Coo`:
 
 - fibonacci.coo
     ```coo
