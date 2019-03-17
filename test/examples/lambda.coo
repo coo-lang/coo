@@ -6,4 +6,4 @@ var result = func((a: int): int -> {
     ret 3
 })
 
-print("result is %d", result)
+println("result is %d", result)

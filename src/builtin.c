@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-void print(char* format, ...) {
+void println(char* format, ...) {
     va_list args;
     va_start(args, format);
     vprintf(format, args);

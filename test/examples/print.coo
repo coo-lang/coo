@@ -1,1 +1,1 @@
-print("the number is %d", 2)
+println("the number is %d", 2)

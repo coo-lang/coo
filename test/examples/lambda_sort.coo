@@ -23,5 +23,5 @@ sort(arr, 10, (a: int, b: int): bool-> {
 
 // print sorted array
 for var i = 0; i < 10; i = i + 1 {
-    print("%d", arr[i])
+    println("%d", arr[i])
 }

@@ -41,7 +41,7 @@ Here are samples program written in `Coo`:
     }
 
     for var i = 1; i <= 30; i = i + 1 {
-        print("%d level fibonacci result is %d", i, fibonacci(i))
+        println("%d level fibonacci result is %d", i, fibonacci(i))
     }
     ```
 
@@ -76,7 +76,7 @@ Here are samples program written in `Coo`:
 
     // print sorted array
     for var i = 0; i < 10; i = i + 1 {
-        print("%d", arr[i])
+        println("%d", arr[i])
     }
     ```
 

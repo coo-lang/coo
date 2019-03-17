@@ -70,7 +70,7 @@ public:
 
 		llvm::Function *func = llvm::Function::Create(
 					printf_type, llvm::Function::ExternalLinkage,
-					llvm::Twine("print"),
+					llvm::Twine("println"),
 					module
 			);
 		func->setCallingConv(llvm::CallingConv::C);

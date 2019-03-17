@@ -1,3 +1,3 @@
 var a: int = -100
 var b: float = 1.2
-print("a is %d, b is %f", a, -b)
+println("a is %d, b is %f", a, -b)
