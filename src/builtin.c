@@ -9,3 +9,7 @@ void println(char* format, ...) {
     va_end(args);
     puts("");
 }
+
+int put(char* c) {
+    putchar(c[0]);
+}

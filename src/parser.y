@@ -47,6 +47,7 @@ void yyerror(const char *s);
 %type <token> comparison
 
 /* Operator precedence */
+%left TCEQ TCNE TCLT TCLE TCGT TCGE TEQUAL
 %left TPLUS TMINUS
 %left TMUL TDIV
 

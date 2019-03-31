@@ -59,10 +59,11 @@ public:
 	Module *module;
 	CodeGenContext(std::string sourceFileName) {
 		module = new Module(sourceFileName, TheContext);
-		register_printf(module);
+		register_println(module);
+		register_put(module);
 	}
 
-	void register_printf(llvm::Module *module) {
+	void register_println(llvm::Module *module) {
 		std::vector<llvm::Type*> printf_arg_types;
 		printf_arg_types.push_back(llvm::Type::getInt8PtrTy(module->getContext()));
 
@@ -73,6 +74,22 @@ public:
 		llvm::Function *func = llvm::Function::Create(
 					printf_type, llvm::Function::ExternalLinkage,
 					llvm::Twine("println"),
+					module
+			);
+		func->setCallingConv(llvm::CallingConv::C);
+	}
+
+	void register_put(llvm::Module *module) {
+		std::vector<llvm::Type*> printf_arg_types;
+		printf_arg_types.push_back(llvm::Type::getInt8PtrTy(module->getContext()));
+
+		llvm::FunctionType* printf_type =
+			llvm::FunctionType::get(
+				llvm::Type::getInt32Ty(module->getContext()), printf_arg_types, false);
+
+		llvm::Function *func = llvm::Function::Create(
+					printf_type, llvm::Function::ExternalLinkage,
+					llvm::Twine("put"),
 					module
 			);
 		func->setCallingConv(llvm::CallingConv::C);
