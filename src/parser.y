@@ -34,7 +34,7 @@ void yyerror(const char *s);
 %token <token> TLPAREN TRPAREN TLBRACKET TRBRACKET TLBRACE TRBRACE TCOMMA TDOT TCOLON TSEMICOLON TFUNCTO
 %token <token> TPLUS TMINUS TMUL TDIV
 /* keywords */
-%token <token> TVAR TDEF TIF TELSE TFOR TRET
+%token <token> TVAR TDEF TIF TELSE TFOR TRET TLAZY
 
 /* Non Terminal symbols. Types refer to union decl above */
 %type <ident> ident
@@ -118,6 +118,7 @@ for_stmt: TFOR expr TSEMICOLON expr TSEMICOLON expr block {$$ = new NForStatemen
 
 ident: TIDENTIFIER { $$ = new NIdentifier(*$1); delete $1; }
 	| TIDENTIFIER TLBRACKET expr TRBRACKET { $$ = new NIdentifier(*$1, $3); delete $1; }
+	| TLAZY TIDENTIFIER { $$ = new NIdentifier(*$2); $$->lazy = true; delete $2; }
 	;
 
 numeric: TINTEGERLIT { $$ = new NInteger(atoi($1->c_str())); delete $1; }

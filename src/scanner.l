@@ -48,6 +48,7 @@ STRING_END ("\"")
 "else"                      return TOKEN(TELSE);
 "for"                       return TOKEN(TFOR);
 "ret"                       return TOKEN(TRET);
+"lazy"                      return TOKEN(TLAZY);
 
 [a-zA-Z_][a-zA-Z0-9_]*      SAVE_TOKEN; return TIDENTIFIER;
 [0-9]+(\.[0-9]*[fF]?|[fF])  SAVE_TOKEN; return TDOUBLELIT;

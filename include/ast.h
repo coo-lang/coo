@@ -63,6 +63,7 @@ public:
 
 class NIdentifier : public NExpression {
 public:
+	bool lazy = false;
 	std::string name;
 	NExpression* index;
 	NIdentifier(const std::string& name) : name(name) { }

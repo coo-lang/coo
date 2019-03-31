@@ -37,6 +37,7 @@
 using namespace llvm;
 
 class NBlock;
+class NVariableDeclaration;
 static LLVMContext TheContext;
 static IRBuilder<> Builder(TheContext);
 static std::map<std::string, std::string> functionAlias;
@@ -47,6 +48,7 @@ public:
 	BasicBlock *returnBlock;
 	Value* returnValue;
 	std::map<std::string, Value*> locals;
+	std::map<std::string, NVariableDeclaration*> lazys;
 };
 
 class CodeGenContext {
