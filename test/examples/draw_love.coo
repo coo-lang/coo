@@ -1,0 +1,11 @@
+for var y = 1.5f; y > -1.5f; y = y - 0.1f {
+    for var x = -1.5f; x < 1.5f; x = x + 0.05f {
+        var a = x * x + y * y - 1.0f
+        if a * a * a - x * x * y * y * y <= 0.0f {
+            put("*")
+        } else {
+            put(".")
+        }
+    }
+    println(".")
+}

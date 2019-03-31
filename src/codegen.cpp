@@ -164,6 +164,11 @@ Value* NString::codeGen(CodeGenContext& context) {
 
 Value* NIdentifier::codeGen(CodeGenContext& context) {
 	cout << "Creating identifier reference: " << name << endl;
+	if (context.currentBlock()->lazys.find(name) != context.currentBlock()->lazys.end()) {
+		context.currentBlock()->lazys[name]->codeGen(context);
+		context.currentBlock()->lazys.erase(name);
+	}
+
 	if (context.locals().find(name) == context.locals().end()) {
 		cerr << "undeclared variable " << name << endl;
 		return NULL;
@@ -449,6 +454,13 @@ Value* NRet::codeGen(CodeGenContext& context) {
 }
 
 Value* NVariableDeclaration::codeGen(CodeGenContext& context) {
+	if (id.lazy) {
+		cout << "Creating lazy variable declaration " << type.name << " " << id.name << endl;
+		id.lazy = false;
+		context.currentBlock()->lazys[id.name] = this;
+		return NULL;
+	}
+
 	cout << "Creating variable declaration " << type.name << " " << id.name << endl;
 
 	AllocaInst *alloc;

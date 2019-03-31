@@ -1,4 +1,4 @@
 def sum(a: int, b: int): int {
    ret a + b
 }
-print("the sum is %d", sum(1,2))
+println("the sum is %d", sum(1,2))

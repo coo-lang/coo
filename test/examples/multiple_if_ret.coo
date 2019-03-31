@@ -12,4 +12,4 @@ def iff (): int {
     }
 }
 
-print("iff() = %d", iff())
+println("iff() = %d", iff())

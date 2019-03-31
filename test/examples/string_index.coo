@@ -1,3 +1,3 @@
 var str: string = "ancdsadfsa"
-print("index %d of str is %c", 1, str[1])
-print("index %d of str is %c", 4, str[4])
+println("index %d of str is %c", 1, str[1])
+println("index %d of str is %c", 4, str[4])

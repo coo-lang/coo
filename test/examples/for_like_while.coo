@@ -4,4 +4,4 @@ for i <= 102 {
     a = a + i
     i = i + 1
 }
-print("a value is %d", a)
+println("a value is %d", a)

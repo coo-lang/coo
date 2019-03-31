@@ -1,6 +1,6 @@
 var n: int = 1
 if n == 1 {
-    print("n is one")
+    println("n is one")
 } else {
-    print("n is not one")
+    println("n is not one")
 }

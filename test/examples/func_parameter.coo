@@ -8,4 +8,4 @@ def foo(a: int): int {
 
 var result = func(foo)
 
-print("result is %d", result)
+println("result is %d", result)

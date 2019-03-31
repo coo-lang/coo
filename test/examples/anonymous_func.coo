@@ -8,4 +8,4 @@ var alias: func = (a: int): int -> {
 
 var result = func(alias)
 
-print("result is %d", result)
+println("result is %d", result)

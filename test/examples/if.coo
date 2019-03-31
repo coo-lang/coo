@@ -1,7 +1,7 @@
 var i: int = 1
 if i > 0 {
-    print("i is positive number~")
+    println("i is positive number~")
 }
 if (i < 0) == false {
-    print("i is not negative number!")
+    println("i is not negative number!")
 }

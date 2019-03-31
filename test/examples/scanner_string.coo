@@ -1,2 +1,2 @@
 var a:string = "hello world"
-print("string is %s", a)
+println("string is %s", a)

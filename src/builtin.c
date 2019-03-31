@@ -2,10 +2,14 @@
 #include <string.h>
 #include <stdarg.h>
 
-void print(char* format, ...) {
+void println(char* format, ...) {
     va_list args;
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
     puts("");
+}
+
+int put(char* c) {
+    putchar(c[0]);
 }

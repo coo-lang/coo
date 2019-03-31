@@ -3,4 +3,4 @@ var b: bool = false
 var c: int = 2
 var d: int = 3
 var e: bool = c <= d
-print("the bool value is %d", e)
+println("the bool value is %d", e)
