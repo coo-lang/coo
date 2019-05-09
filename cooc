@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $1 = "clean" ]; then
+    rm a.ll a.o a.out
+else
+    ./coo $1 "a"
+    if [ $? -eq 0 ]; then
+        echo "Building well, linking obejct..."
+        clang -o "a.out" "a.o" "./build/obj/builtin.o"
+        echo "Running a.out"
+        ./a.out
+    else
+        echo "Build Fail"
+    fi
+fi
